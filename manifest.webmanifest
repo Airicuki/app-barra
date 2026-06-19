@@ -1,0 +1,9 @@
+{
+  "name": "Barra de Bebidas",
+  "short_name": "Barra",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f7f4",
+  "theme_color": "#0f766e",
+  "icons": []
+}

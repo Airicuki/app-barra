@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <title>Barra de Bebidas</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="app" class="shell">
+    <section id="loginView" class="login-view">
+      <div class="login-panel">
+        <div>
+          <p class="eyebrow">Control semanal</p>
+          <h1>Barra de Bebidas</h1>
+          <p class="muted">Inventario, ventas, caja y pérdidas diarias para trabajar desde móvil u ordenador.</p>
+        </div>
+
+        <form id="loginForm" class="form">
+          <label>
+            Usuario
+            <input id="username" autocomplete="username" required placeholder="admin o barra">
+          </label>
+          <label>
+            Contraseña
+            <input id="password" type="password" autocomplete="current-password" required placeholder="Introduce la contraseña">
+          </label>
+          <button class="primary" type="submit">Entrar</button>
+          <p id="loginError" class="error" role="alert"></p>
+        </form>
+
+        <div class="credentials">
+          <strong>Usuarios de prueba</strong>
+          <span>Admin: <code>admin</code> / <code>admin123</code></span>
+          <span>Normal: <code>barra</code> / <code>barra123</code></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="dashboardView" class="dashboard hidden">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Semana actual</p>
+          <h1>Barra de Bebidas</h1>
+        </div>
+        <div class="session">
+          <span id="roleBadge" class="badge"></span>
+          <button id="logoutBtn" class="ghost" type="button">Salir</button>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Secciones">
+        <button class="tab active" data-view="dailyView" type="button">Barra</button>
+        <button class="tab" data-view="cashView" type="button">Caja</button>
+        <button class="tab" data-view="notesView" type="button">Notas</button>
+        <button class="tab" data-view="ranchoView" type="button">El Rancho</button>
+        <button class="tab" data-view="inventoryView" type="button">Inventario</button>
+        <button class="tab admin-only" data-view="reportsView" type="button">Informes</button>
+      </nav>
+
+      <section class="day-band">
+        <label class="date-field">
+          Día operativo
+          <input id="entryDate" type="date">
+        </label>
+        <p class="muted">Cada día se guarda de 10:00 a 10:00 del día siguiente.</p>
+      </section>
+
+      <section class="summary-grid" aria-label="Resumen semanal">
+        <article>
+          <span>Ventas semana</span>
+          <strong id="weekSold">0</strong>
+        </article>
+        <article>
+          <span>Pérdidas semana</span>
+          <strong id="weekLost">0</strong>
+        </article>
+        <article>
+          <span>Valor vendido</span>
+          <strong id="weekRevenue">0,00 €</strong>
+        </article>
+        <article>
+          <span>Stock actual</span>
+          <strong id="weekStock">0</strong>
+        </article>
+      </section>
+
+      <section id="dailyView" class="view">
+        <div class="section-head">
+          <div>
+            <h2>Venta por transacción</h2>
+            <p class="muted">Suma productos con + y -, guarda cada venta completa al cobrar.</p>
+          </div>
+        </div>
+
+        <div id="dailyRows" class="table-list"></div>
+
+        <div class="actions-row">
+          <div>
+            <strong id="cartTotal">0,00 €</strong>
+            <span id="cartUnits" class="status">0 productos</span>
+          </div>
+          <button id="saveTransactionBtn" class="primary" type="button">Guardar transacción</button>
+        </div>
+
+        <section class="loss-panel">
+          <div>
+            <h3>Pérdidas del día</h3>
+            <p class="muted">Usa esto para roturas, invitaciones o producto perdido.</p>
+          </div>
+          <div id="lossRows" class="table-list"></div>
+          <div class="actions-row">
+            <span id="saveStatus" class="status"></span>
+            <button id="saveLossBtn" class="secondary" type="button">Guardar pérdidas</button>
+          </div>
+        </section>
+
+        <section>
+          <h3>Ventas guardadas hoy</h3>
+          <div id="transactionRows" class="table-list"></div>
+        </section>
+      </section>
+
+      <section id="cashView" class="view hidden">
+        <div class="section-head">
+          <div>
+            <h2>Caja del día</h2>
+            <p class="muted">Registra los tres conteos y revisa la diferencia entre ellos.</p>
+          </div>
+        </div>
+        <div class="cash-grid">
+          <article class="cash-card" data-cash-count="morning">
+            <header>
+              <h3>Entrada de turno</h3>
+              <strong data-cash-total>0,00 €</strong>
+            </header>
+            <div class="cash-denominations" data-cash-denominations></div>
+          </article>
+          <article class="cash-card" data-cash-count="start">
+            <header>
+              <h3>Inicio barra 19:00</h3>
+              <strong data-cash-total>0,00 €</strong>
+            </header>
+            <div class="cash-denominations" data-cash-denominations></div>
+          </article>
+          <article class="cash-card" data-cash-count="end">
+            <header>
+              <h3>Final barra</h3>
+              <strong data-cash-total>0,00 €</strong>
+            </header>
+            <div class="cash-denominations" data-cash-denominations></div>
+          </article>
+        </div>
+        <section class="summary-grid compact" aria-label="Diferencias de caja">
+          <article>
+            <span>Inicio - Entrada</span>
+            <strong id="cashDiffStart">0,00 €</strong>
+          </article>
+          <article>
+            <span>Final - Inicio</span>
+            <strong id="cashDiffEnd">0,00 €</strong>
+          </article>
+          <article>
+            <span>Final - Entrada</span>
+            <strong id="cashDiffDay">0,00 €</strong>
+          </article>
+        </section>
+        <div class="actions-row">
+          <span id="cashStatus" class="status"></span>
+          <button id="saveCashBtn" class="primary" type="button">Guardar caja</button>
+        </div>
+      </section>
+
+      <section id="inventoryView" class="view hidden">
+        <div class="section-head">
+          <div>
+            <h2>Inventario</h2>
+            <p class="muted">Añade bebidas y ajusta stock o precio.</p>
+          </div>
+          <button id="addProductBtn" class="secondary admin-only" type="button">Añadir producto</button>
+        </div>
+        <div id="inventoryRows" class="table-list"></div>
+      </section>
+
+      <section id="notesView" class="view hidden">
+        <div class="section-head">
+          <div>
+            <h2>Notas de turno</h2>
+            <p class="muted">Registra avisos para el siguiente turno.</p>
+          </div>
+        </div>
+        <form id="noteForm" class="note-form">
+          <label>
+            Concepto
+            <input id="noteConcept" required placeholder="Ej. Pedido pendiente">
+          </label>
+          <label>
+            Proveedor
+            <input id="noteProvider" required placeholder="Ej. Bebidas Norte">
+          </label>
+          <label>
+            Importe €
+            <input id="noteAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
+          </label>
+          <button class="primary" type="submit">Guardar nota</button>
+        </form>
+        <div id="noteRows" class="table-list"></div>
+      </section>
+
+      <section id="ranchoView" class="view hidden">
+        <div class="section-head">
+          <div>
+            <h2>El Rancho</h2>
+            <p class="muted">Cuadrante semanal de sábado a sábado, con comidas y cenas asociadas.</p>
+          </div>
+        </div>
+
+        <section class="people-panel">
+          <div>
+            <h3>Personas disponibles</h3>
+            <p class="muted">Estos nombres aparecen en los seleccionables del cuadrante y de comidas/cenas.</p>
+          </div>
+          <form id="personForm" class="inline-form">
+            <input id="personName" placeholder="Nombre de persona">
+            <button class="secondary" type="submit">Añadir persona</button>
+          </form>
+          <div id="peopleList" class="chip-list"></div>
+        </section>
+
+        <section>
+          <h3>Cuadrante</h3>
+          <div id="ranchoScheduleRows" class="rancho-week"></div>
+        </section>
+
+        <section>
+          <h3>Comidas y cenas</h3>
+          <div id="ranchoMealRows" class="rancho-week"></div>
+        </section>
+      </section>
+
+      <section id="reportsView" class="view hidden">
+        <div class="section-head">
+          <div>
+            <h2>Informes</h2>
+            <p class="muted">Exportación semanal disponible solo para administrador.</p>
+          </div>
+          <button id="exportBtn" class="primary" type="button">Exportar Excel</button>
+        </div>
+        <div id="reportRows" class="table-list"></div>
+      </section>
+    </section>
+  </main>
+
+  <template id="productStepperTemplate">
+    <article class="row-card product-stepper-row">
+      <div class="product-main">
+        <strong data-name></strong>
+        <span data-stock></span>
+      </div>
+      <div class="stepper" aria-label="Cantidad">
+        <button data-minus type="button">-</button>
+        <output data-qty>0</output>
+        <button data-plus type="button">+</button>
+      </div>
+    </article>
+  </template>
+
+  <template id="inventoryRowTemplate">
+    <article class="row-card inventory-row">
+      <label>
+        Producto
+        <input data-name>
+      </label>
+      <label>
+        Stock
+        <input data-stock type="number" min="0" step="1" inputmode="numeric">
+      </label>
+      <label>
+        Precio €
+        <input data-price type="number" min="0" step="0.01" inputmode="decimal">
+      </label>
+      <button data-remove class="danger admin-only" type="button">Eliminar</button>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
