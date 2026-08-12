@@ -606,4 +606,239 @@ h3 {
     align-items: flex-start;
     flex-direction: column;
   }
+
+  /* =========================================================
+   INFORMES DE CAJA
+   ========================================================= */
+
+.reports-header {
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.report-selector {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background: #ffffff;
+  border: 1px solid #dfe5e1;
+  border-radius: 14px;
+}
+
+.report-selector .date-field {
+  min-width: 240px;
+}
+
+.report-button {
+  min-height: 44px;
+  padding: 0 22px;
+}
+
+.cash-report {
+  width: 100%;
+}
+
+.report-placeholder {
+  padding: 50px 20px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #dfe5e1;
+  border-radius: 14px;
+}
+
+.report-placeholder-icon {
+  font-size: 42px;
+  margin-bottom: 10px;
+}
+
+.report-placeholder h3 {
+  margin: 0 0 8px;
+}
+
+/* Caja encontrada */
+
+.cash-report-card {
+  background: #ffffff;
+  border: 1px solid #dfe5e1;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.cash-report-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.cash-report-title h3 {
+  margin: 0;
+}
+
+.cash-report-meta {
+  font-size: 13px;
+  color: #6b7771;
+}
+
+/* Totales */
+
+.cash-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.cash-summary-card {
+  padding: 18px;
+  border: 1px solid #e0e5e2;
+  border-radius: 12px;
+  background: #fafcfb;
+}
+
+.cash-summary-card span {
+  display: block;
+  font-size: 13px;
+  color: #6b7771;
+  margin-bottom: 6px;
+}
+
+.cash-summary-card strong {
+  font-size: 24px;
+}
+
+/* Conteos */
+
+.cash-count-section {
+  margin-top: 28px;
+}
+
+.cash-count-section h4 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.cash-count-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cash-count-table th,
+.cash-count-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #edf0ee;
+  text-align: left;
+}
+
+.cash-count-table th:last-child,
+.cash-count-table td:last-child {
+  text-align: right;
+}
+
+.cash-count-table tfoot th {
+  border-top: 2px solid #dfe5e1;
+  border-bottom: 0;
+  font-size: 15px;
+}
+
+/* Ventas y pérdidas */
+
+.cash-report-section {
+  margin-top: 32px;
+}
+
+.cash-report-section h3 {
+  margin-bottom: 12px;
+}
+
+.cash-report-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e0e5e2;
+  border-radius: 12px;
+}
+
+.cash-report-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 650px;
+}
+
+.cash-report-table th,
+.cash-report-table td {
+  padding: 11px 13px;
+  text-align: left;
+  border-bottom: 1px solid #edf0ee;
+}
+
+.cash-report-table th {
+  font-size: 13px;
+  color: #59645f;
+  background: #f7f9f8;
+}
+
+.cash-report-table td:last-child,
+.cash-report-table th:last-child {
+  text-align: right;
+}
+
+.cash-report-table tfoot th {
+  border-top: 2px solid #dfe5e1;
+  border-bottom: 0;
+}
+
+/* No hay caja */
+
+.report-empty {
+  padding: 35px 20px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e0e5e1;
+  border-radius: 14px;
+}
+
+.report-empty h3 {
+  margin: 0 0 8px;
+}
+
+/* Ocultamos el informe antiguo de productos */
+
+.report-legacy {
+  display: none;
+}
+
+/* Responsive */
+
+@media (max-width: 800px) {
+  .report-selector {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .report-selector .date-field {
+    min-width: 0;
+  }
+
+  .cash-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cash-report-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 500px) {
+  .cash-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .cash-report-card {
+    padding: 16px;
+  }
+}
+
 }

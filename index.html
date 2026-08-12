@@ -7,6 +7,350 @@
   <title>Barra de Bebidas</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="styles.css">
+
+  <style id="reports-page-style">
+    /* =========================================================
+       INFORMES - DISEÑO VISUAL
+       ========================================================= */
+
+    .reports-header {
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .report-selector {
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      background: #fff;
+      border: 1px solid #dfe5e1;
+      border-radius: 14px;
+    }
+
+    .report-selector .date-field {
+      min-width: 240px;
+    }
+
+    .report-button {
+      min-height: 44px;
+      padding: 0 20px;
+    }
+
+    .cash-report {
+      width: 100%;
+    }
+
+    .report-placeholder {
+      padding: 42px 20px;
+      text-align: center;
+      background: #fff;
+      border: 1px solid #dfe5e1;
+      border-radius: 14px;
+    }
+
+    .report-placeholder-icon {
+      font-size: 40px;
+      margin-bottom: 8px;
+    }
+
+    .report-placeholder h3 {
+      margin: 0 0 6px;
+    }
+
+    /* ---------------------------------------------------------
+       Tarjeta principal del informe
+       --------------------------------------------------------- */
+
+    .report-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 22px 24px;
+      padding: 22px;
+      background: #fff;
+      border: 1px solid #dfe5e1;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(20, 35, 30, 0.04);
+    }
+
+    .report-card > h3:first-child {
+      grid-column: 1 / -1;
+      margin: 0;
+      padding-bottom: 12px;
+      font-size: 22px;
+      border-bottom: 1px solid #edf0ee;
+    }
+
+    /* ---------------------------------------------------------
+       Resumen de caja
+       --------------------------------------------------------- */
+
+    .report-card .summary-grid.compact {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0;
+    }
+
+    .report-card .summary-grid.compact article {
+      min-width: 0;
+      padding: 16px 18px;
+      background: #fafcfb;
+      border: 1px solid #e1e7e3;
+      border-radius: 12px;
+    }
+
+    .report-card .summary-grid.compact article span {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+      color: #66726c;
+    }
+
+    .report-card .summary-grid.compact article strong {
+      font-size: 22px;
+    }
+
+    /* ---------------------------------------------------------
+       Conteo de efectivo
+       --------------------------------------------------------- */
+
+    .report-card > h3:nth-child(3) {
+      grid-column: 1 / -1;
+      margin: 0;
+    }
+
+    .cash-report-counts {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .cash-report-count {
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid #dfe5e1;
+      border-radius: 12px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .cash-report-count h4 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+
+    .cash-report-count table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .cash-report-count th,
+    .cash-report-count td {
+      padding: 8px 7px;
+      border-bottom: 1px solid #edf0ee;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .cash-report-count th {
+      font-size: 13px;
+      background: #f7f9f8;
+    }
+
+    .cash-report-count th:last-child,
+    .cash-report-count td:last-child {
+      text-align: right;
+    }
+
+    .cash-report-count tfoot th {
+      padding-top: 12px;
+      border-top: 2px solid #dfe5e1;
+      border-bottom: 0;
+      background: #fff;
+    }
+
+    /* ---------------------------------------------------------
+       Tablas de ventas y pérdidas
+       --------------------------------------------------------- */
+
+    .report-card .table-wrapper {
+      min-width: 0;
+      overflow-x: auto;
+      border: 1px solid #dfe5e1;
+      border-radius: 12px;
+    }
+
+    .report-card .table-wrapper table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .report-card .table-wrapper th,
+    .report-card .table-wrapper td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #edf0ee;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .report-card .table-wrapper th {
+      font-size: 13px;
+      background: #f7f9f8;
+    }
+
+    .report-card .table-wrapper th:last-child,
+    .report-card .table-wrapper td:last-child {
+      text-align: right;
+    }
+
+    .report-card .table-wrapper tfoot th {
+      padding-top: 12px;
+      border-top: 2px solid #dfe5e1;
+      border-bottom: 0;
+      background: #fff;
+    }
+
+    /* Si el renderCashReport usa h3 + table-wrapper para ventas */
+    .report-card > h3:nth-of-type(2),
+    .report-card > .table-wrapper:nth-of-type(1) {
+      grid-column: 1;
+    }
+
+    .report-card > h3:nth-of-type(3),
+    .report-card > .table-wrapper:nth-of-type(2) {
+      grid-column: 2;
+    }
+
+    /* ---------------------------------------------------------
+       Tarjetas resumen por producto
+       --------------------------------------------------------- */
+
+    .report-product-summary {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .report-product-summary .row-card.daily-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(120px, .8fr) minmax(120px, .8fr);
+      align-items: center;
+      gap: 20px;
+      padding: 20px 22px;
+      background: #fff;
+      border: 1px solid #dfe5e1;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(20, 35, 30, 0.03);
+    }
+
+    .report-product-summary .product-main {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .report-product-summary .product-main strong {
+      font-size: 17px;
+    }
+
+    .report-product-summary .row-card.daily-row > div:not(.product-main) strong {
+      font-size: 20px;
+    }
+
+    .report-product-summary .row-card.daily-row > div:last-child strong {
+      color: #b42318;
+    }
+
+    /* Por si el render antiguo usa otra estructura de row-card */
+    .report-product-summary .row-card:not(.daily-row) {
+      padding: 18px 20px;
+      background: #fff;
+      border: 1px solid #dfe5e1;
+      border-radius: 12px;
+    }
+
+    /* ---------------------------------------------------------
+       Mensajes
+       --------------------------------------------------------- */
+
+    .cash-report .error,
+    .report-product-summary .error {
+      padding: 18px;
+      background: #fff7f7;
+      border: 1px solid #f0caca;
+      border-radius: 12px;
+    }
+
+    /* ---------------------------------------------------------
+       Responsive
+       --------------------------------------------------------- */
+
+    @media (max-width: 1000px) {
+      .cash-report-counts {
+        grid-template-columns: 1fr;
+      }
+
+      .report-card .summary-grid.compact {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .report-selector {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .report-selector .date-field {
+        min-width: 0;
+      }
+
+      .report-card {
+        grid-template-columns: 1fr;
+      }
+
+      .report-card > h3:nth-of-type(2),
+      .report-card > .table-wrapper:nth-of-type(1),
+      .report-card > h3:nth-of-type(3),
+      .report-card > .table-wrapper:nth-of-type(2) {
+        grid-column: 1;
+      }
+
+      .report-card .summary-grid.compact {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .report-product-summary .row-card.daily-row {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .report-product-summary .product-main {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .report-card .summary-grid.compact {
+        grid-template-columns: 1fr;
+      }
+
+      .report-product-summary .row-card.daily-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding: 16px;
+      }
+    }
+
+    /* Ocultar el resumen antiguo por producto del informe */
+    #reportsView #reportRows {
+      display: none !important;
+    }
+  </style>
+
 </head>
 <body>
   <main id="app" class="shell">
@@ -32,9 +376,9 @@
         </form>
 
         <div class="credentials">
-          <strong>Usuarios de prueba</strong>
-          <span>Admin: <code>admin</code> / <code>admin123</code></span>
-          <span>Normal: <code>barra</code> / <code>barra123</code></span>
+          <strong>Usuarios</strong>
+          <span>Admin: <code>jefeBarra</code> / <code>sepul123</code></span>
+          <span>Normal: <code>barra</code> / <code>user123</code></span>
         </div>
       </div>
     </section>
@@ -204,6 +548,14 @@
             Importe €
             <input id="noteAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
           </label>
+          <label>
+            Imagen
+            <input
+              id="noteImage"
+              type="file"
+              accept="image/*"
+            >
+          </label>
           <button class="primary" type="submit">Guardar nota</button>
         </form>
         <div id="noteRows" class="table-list"></div>
@@ -241,16 +593,52 @@
       </section>
 
       <section id="reportsView" class="view hidden">
-        <div class="section-head">
+        <div class="section-head reports-header">
           <div>
+            <p class="eyebrow">Control de caja</p>
             <h2>Informes</h2>
-            <p class="muted">Exportación semanal disponible solo para administrador.</p>
+            <p class="muted">
+              Consulta todo lo ocurrido en una caja concreta.
+            </p>
           </div>
-          <button id="exportBtn" class="primary" type="button">Exportar Excel</button>
+
+          <button id="exportBtn" class="primary" type="button">
+            📊 Exportar Excel
+          </button>
         </div>
-        <div id="reportRows" class="table-list"></div>
+
+        <section class="report-selector">
+          <label class="date-field">
+            Día de caja
+            <input id="reportDate" type="date">
+          </label>
+
+          <button
+            id="loadCashReportBtn"
+            class="secondary report-button"
+            type="button"
+          >
+            🔎 Consultar caja
+          </button>
+        </section>
+
+        <div id="cashReport" class="cash-report">
+          <div class="report-placeholder">
+            <div class="report-placeholder-icon">💰</div>
+            <h3>Selecciona un día</h3>
+            <p class="muted">
+              Selecciona una fecha para consultar la actividad de esa caja.
+            </p>
+          </div>
+        </div>
+
+        <!--
+          Se mantiene porque app.js lo utiliza para el resumen semanal
+          por producto. Visualmente se muestra como tarjetas.
+        -->
+        <div id="reportRows" class="report-product-summary"></div>
       </section>
-    </section>
+
   </main>
 
   <template id="productStepperTemplate">
@@ -285,6 +673,8 @@
     </article>
   </template>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
