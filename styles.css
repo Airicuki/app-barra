@@ -3639,3 +3639,99 @@
   outline-offset:
     1px;
 }
+
+
+/* =========================================================
+   PRODUCTOS DE BARRA - CATEGORÍAS
+   ========================================================= */
+
+.bar-category {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.bar-category:last-child {
+  margin-bottom: 0;
+}
+
+.bar-category-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-left: 4px solid var(--accent);
+  border-bottom: 1px solid var(--line);
+  background: var(--accent-light);
+  border-radius: 10px;
+}
+
+.bar-category-title {
+  margin: 0;
+  color: var(--accent-strong);
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.bar-category-products {
+  display: grid;
+  gap: 9px;
+}
+
+.bar-category-products .product-stepper-row {
+  grid-template-columns: minmax(180px, 1fr) auto;
+  align-items: center;
+}
+
+.bar-category + .bar-category {
+  padding-top: 4px;
+}
+
+/* ---------------------------------------------------------
+   BARRA - MÓVIL
+   --------------------------------------------------------- */
+
+@media (max-width: 760px) {
+
+  .bar-category {
+    gap: 9px;
+    margin-bottom: 20px;
+  }
+
+  .bar-category-header {
+    min-height: 46px;
+    padding: 9px 12px;
+  }
+
+  .bar-category-title {
+    font-size: 0.98rem;
+  }
+
+  .bar-category-products {
+    gap: 8px;
+  }
+
+  .bar-category-products .product-stepper-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .bar-category-products .stepper {
+    width: 100%;
+  }
+
+}
+
+@media (max-width: 430px) {
+
+  .bar-category-header {
+    padding: 8px 11px;
+  }
+
+  .bar-category-title {
+    font-size: 0.94rem;
+  }
+
+}

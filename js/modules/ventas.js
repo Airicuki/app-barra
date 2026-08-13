@@ -178,89 +178,401 @@ import {
     }
   
   
-    // ----------------------------------------------------------
-    // PRODUCTOS
-    // ----------------------------------------------------------
+    // ==========================================================
+    // ORDEN DE CATEGORÍAS
+    // ==========================================================
   
-    products.forEach(
-      (product) => {
+    const categories = [
   
-        const row =
-          template.content
-            .firstElementChild
-            .cloneNode(true);
+      {
+        id: "minis",
+        title: "Minis",
+        icon: "🍹"
+      },
+  
+      {
+        id: "copas",
+        title: "Copas",
+        icon: "🍷"
+      },
+  
+      {
+        id: "varios",
+        title: "Varios",
+        icon: "🥤"
+      },
+  
+      {
+        id: "chupitos",
+        title: "Chupitos",
+        icon: "🥃"
+      }
+  
+    ];
   
   
-        row.dataset.productId =
-          product.id;
+    // ==========================================================
+    // AGRUPAR PRODUCTOS
+    // ==========================================================
+  
+    categories.forEach(
+      (category) => {
+  
+        const categoryProducts =
+          products
+            .filter(
+              (product) =>
+                product.category ===
+                category.id
+            )
+            .sort(
+              (a, b) =>
+                a.order -
+                b.order
+            );
   
   
-        row.dataset.mode =
-          "sale";
+        // Si no hay productos
+        // en esta categoría,
+        // no mostramos la sección.
+  
+        if (
+          !categoryProducts.length
+        ) {
+  
+          return;
+  
+        }
   
   
-        // ------------------------------------------------------
-        // NOMBRE
-        // ------------------------------------------------------
+        // ======================================================
+        // CONTENEDOR DE CATEGORÍA
+        // ======================================================
   
-        const name =
-          row.querySelector(
-            "[data-name]"
+        const section =
+          document.createElement(
+            "section"
           );
   
   
-        if (name) {
-  
-          name.textContent =
-            product.name;
-  
-        }
+        section.className =
+          "bar-category";
   
   
-        // ------------------------------------------------------
-        // PRECIO
-        // ------------------------------------------------------
+        section.dataset.category =
+          category.id;
   
-        const price =
-          row.querySelector(
-            "[data-stock]"
+  
+        // ======================================================
+        // CABECERA
+        // ======================================================
+  
+        const header =
+          document.createElement(
+            "div"
           );
   
   
-        if (price) {
-  
-          price.textContent =
-            `Precio: ${formatMoney(product.price)}`;
-  
-        }
+        header.className =
+          "bar-category-header";
   
   
-        // ------------------------------------------------------
-        // CANTIDAD
-        // ------------------------------------------------------
-  
-        const qty =
-          row.querySelector(
-            "[data-qty]"
+        const title =
+          document.createElement(
+            "h3"
           );
   
   
-        if (qty) {
+        title.className =
+          "bar-category-title";
   
-          qty.textContent =
-            cart[
-              product.id
-            ] || 0;
   
-        }
+        title.textContent =
+          `${category.icon} ${category.title}`;
+  
+  
+        header.append(
+          title
+        );
+  
+  
+        section.append(
+          header
+        );
+  
+  
+        // ======================================================
+        // PRODUCTOS
+        // ======================================================
+  
+        const productsContainer =
+          document.createElement(
+            "div"
+          );
+  
+  
+        productsContainer.className =
+          "bar-category-products";
+  
+  
+        categoryProducts.forEach(
+          (product) => {
+  
+            const row =
+              template.content
+                .firstElementChild
+                .cloneNode(true);
+  
+  
+            row.dataset.productId =
+              product.id;
+  
+  
+            row.dataset.mode =
+              "sale";
+  
+  
+            // --------------------------------------------------
+            // NOMBRE
+            // --------------------------------------------------
+  
+            const name =
+              row.querySelector(
+                "[data-name]"
+              );
+  
+  
+            if (name) {
+  
+              name.textContent =
+                product.name;
+  
+            }
+  
+  
+            // --------------------------------------------------
+            // PRECIO
+            // --------------------------------------------------
+  
+            const price =
+              row.querySelector(
+                "[data-stock]"
+              );
+  
+  
+            if (price) {
+  
+              price.textContent =
+                `Precio: ${formatMoney(
+                  product.price
+                )}`;
+  
+            }
+  
+  
+            // --------------------------------------------------
+            // CANTIDAD
+            // --------------------------------------------------
+  
+            const qty =
+              row.querySelector(
+                "[data-qty]"
+              );
+  
+  
+            if (qty) {
+  
+              qty.textContent =
+                cart[
+                  product.id
+                ] || 0;
+  
+            }
+  
+  
+            productsContainer.append(
+              row
+            );
+  
+          }
+        );
+  
+  
+        section.append(
+          productsContainer
+        );
   
   
         els.dailyRows.append(
-          row
+          section
         );
   
       }
     );
+  
+  
+    // ==========================================================
+    // PRODUCTOS SIN CATEGORÍA
+    // ==========================================================
+    //
+    // Por seguridad, si algún producto nuevo se crea sin
+    // categoría, no desaparece.
+    //
+    // ==========================================================
+  
+    const uncategorized =
+      products.filter(
+        (product) =>
+          ![
+            "minis",
+            "copas",
+            "varios",
+            "chupitos"
+          ].includes(
+            product.category
+          )
+      );
+  
+  
+    if (
+      uncategorized.length
+    ) {
+  
+      const section =
+        document.createElement(
+          "section"
+        );
+  
+  
+      section.className =
+        "bar-category";
+  
+  
+      const header =
+        document.createElement(
+          "div"
+        );
+  
+  
+      header.className =
+        "bar-category-header";
+  
+  
+      const title =
+        document.createElement(
+          "h3"
+        );
+  
+  
+      title.className =
+        "bar-category-title";
+  
+  
+      title.textContent =
+        "🍺 Otros";
+  
+  
+      header.append(
+        title
+      );
+  
+  
+      section.append(
+        header
+      );
+  
+  
+      const productsContainer =
+        document.createElement(
+          "div"
+        );
+  
+  
+      productsContainer.className =
+        "bar-category-products";
+  
+  
+      uncategorized.forEach(
+        (product) => {
+  
+          const row =
+            template.content
+              .firstElementChild
+              .cloneNode(true);
+  
+  
+          row.dataset.productId =
+            product.id;
+  
+  
+          row.dataset.mode =
+            "sale";
+  
+  
+          const name =
+            row.querySelector(
+              "[data-name]"
+            );
+  
+  
+          if (name) {
+  
+            name.textContent =
+              product.name;
+  
+          }
+  
+  
+          const price =
+            row.querySelector(
+              "[data-stock]"
+            );
+  
+  
+          if (price) {
+  
+            price.textContent =
+              `Precio: ${formatMoney(
+                product.price
+              )}`;
+  
+          }
+  
+  
+          const qty =
+            row.querySelector(
+              "[data-qty]"
+            );
+  
+  
+          if (qty) {
+  
+            qty.textContent =
+              cart[
+                product.id
+              ] || 0;
+  
+          }
+  
+  
+          productsContainer.append(
+            row
+          );
+  
+        }
+      );
+  
+  
+      section.append(
+        productsContainer
+      );
+  
+  
+      els.dailyRows.append(
+        section
+      );
+  
+    }
   
   }
   
@@ -464,6 +776,7 @@ import {
         current + 1;
   
     }
+  
   
     // ----------------------------------------------------------
     // RESTAR
