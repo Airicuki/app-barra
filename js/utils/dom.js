@@ -7,6 +7,7 @@ export const els = {
   
     username: document.querySelector("#username"),
     password: document.querySelector("#password"),
+    togglePassword: document.querySelector("#togglePassword"),
   
     roleBadge: document.querySelector("#roleBadge"),
     logoutBtn: document.querySelector("#logoutBtn"),
@@ -14,6 +15,8 @@ export const els = {
     tabs: document.querySelectorAll(".tab"),
     views: document.querySelectorAll(".view"),
     adminOnly: document.querySelectorAll(".admin-only"),
+    inventoryManagerOnly: document.querySelectorAll(".inventory-manager-only"),
+    operationalSummary: document.querySelector("#operationalSummary"),
   
     entryDate: document.querySelector("#entryDate"),
   

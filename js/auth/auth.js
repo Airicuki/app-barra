@@ -12,178 +12,217 @@ import { loadProductsFromSupabase } from "../modules/inventario.js";
 // =====================================================
 
 export async function login(event) {
-  event.preventDefault();
 
-  console.log("📱 LOGIN EJECUTADO");
-
-  const username = els.username.value.trim();
-  const password = els.password.value;
-
-  els.loginError.textContent = "";
-
-  if (!username || !password) {
+    event.preventDefault();
+  
+    console.log(
+      "📱 LOGIN EJECUTADO"
+    );
+  
+  
+    const username =
+      els.username.value.trim();
+  
+    const password =
+      els.password.value;
+  
+  
     els.loginError.textContent =
-      "Introduce usuario y contraseña.";
-    return;
-  }
-
-  try {
-
-    // -------------------------------------------------
-    // 1. Obtener email asociado al username
-    // -------------------------------------------------
-
-    const {
-      data: email,
-      error: emailError
-    } = await db.rpc(
-      "get_login_email",
-      {
-        p_username: username
+      "";
+  
+  
+    if (
+      !username ||
+      !password
+    ) {
+  
+      els.loginError.textContent =
+        "Introduce usuario y contraseña.";
+  
+      return;
+    }
+  
+  
+    try {
+  
+      // =================================================
+      // 1. Obtener email asociado al username
+      // =================================================
+  
+      const {
+        data: email,
+        error: emailError
+      } = await db.rpc(
+        "get_login_email",
+        {
+          p_username: username
+        }
+      );
+  
+  
+      if (
+        emailError ||
+        !email
+      ) {
+  
+        els.loginError.textContent =
+          "Usuario o contraseña incorrectos.";
+  
+        return;
       }
-    );
-
-    if (emailError || !email) {
-
-      els.loginError.textContent =
-        "Usuario o contraseña incorrectos.";
-
-      return;
-    }
-
-
-    // -------------------------------------------------
-    // 2. Login en Supabase Auth
-    // -------------------------------------------------
-
-    const {
-      data: authData,
-      error: authError
-    } = await db.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (authError) {
-
-      console.error(
-        "❌ Error de autenticación:",
-        authError
+  
+  
+      // =================================================
+      // 2. Login en Supabase Auth
+      // =================================================
+  
+      const {
+        data: authData,
+        error: authError
+      } =
+        await db.auth.signInWithPassword({
+          email,
+          password
+        });
+  
+  
+      if (authError) {
+  
+        console.error(
+          "❌ Error de autenticación:",
+          authError
+        );
+  
+  
+        els.loginError.textContent =
+          "Usuario o contraseña incorrectos.";
+  
+        return;
+      }
+  
+  
+      // =================================================
+      // 3. Obtener perfil
+      // =================================================
+  
+      const {
+        data: profile,
+        error: profileError
+      } =
+        await db
+          .from("usuarios")
+          .select(
+            "id, username, email, rol"
+          )
+          .eq(
+            "id",
+            authData.user.id
+          )
+          .single();
+  
+  
+      if (
+        profileError ||
+        !profile
+      ) {
+  
+        console.error(
+          "❌ No se pudo obtener el perfil:",
+          profileError
+        );
+  
+  
+        await db.auth.signOut();
+  
+  
+        els.loginError.textContent =
+          "No se ha podido cargar el perfil del usuario.";
+  
+        return;
+      }
+  
+  
+      // =================================================
+      // 4. Crear sesión de aplicación
+      // =================================================
+  
+      appState.setSession({
+  
+        userId:
+          authData.user.id,
+  
+        username:
+          profile.username,
+  
+        email:
+          profile.email,
+  
+        role:
+          profile.rol,
+  
+        label:
+          getRoleLabel(
+            profile.rol
+          )
+  
+      });
+  
+  
+      console.log(
+        "✅ Login correcto"
       );
-
-      els.loginError.textContent =
-        "Usuario o contraseña incorrectos.";
-
-      return;
-    }
-
-
-    // -------------------------------------------------
-    // 3. Obtener perfil
-    // -------------------------------------------------
-
-    const {
-      data: profile,
-      error: profileError
-    } = await db
-      .from("usuarios")
-      .select(
-        "id, username, email, rol"
-      )
-      .eq(
-        "id",
-        authData.user.id
-      )
-      .single();
-
-    if (profileError || !profile) {
-
-      console.error(
-        "❌ No se pudo obtener el perfil:",
-        profileError
+  
+  
+      console.log(
+        "👤 Usuario:",
+        appState.session.username
       );
-
-      await db.auth.signOut();
-
-      els.loginError.textContent =
-        "No se ha podido cargar el perfil del usuario.";
-
-      return;
-    }
-
-
-    // -------------------------------------------------
-    // 4. Crear sesión de aplicación
-    // -------------------------------------------------
-
-    appState.setSession({
-      userId: authData.user.id,
-      username: profile.username,
-      email: profile.email,
-      role: profile.rol,
-      label: getRoleLabel(profile.rol)
-    });
-
-    console.log(
-      "✅ Login correcto"
-    );
-
-    console.log(
-      "👤 Usuario:",
-      appState.session.username
-    );
-
-    console.log(
-      "🔐 Rol:",
-      appState.session.role
-    );
-
-
-    // -------------------------------------------------
-    // 5. Cargar inventario
-    // -------------------------------------------------
-
-    const productsLoaded =
-      await loadProductsFromSupabase();
-
-    if (!productsLoaded) {
-
-      console.error(
-        "❌ No se pudo cargar el inventario."
+  
+  
+      console.log(
+        "🔐 Rol:",
+        appState.session.role
       );
-
-      await db.auth.signOut();
-
-      appState.clearSession();
-
+  
+  
+      // =================================================
+      // 5. Entrar en la aplicación
+      // =================================================
+  
+      els.loginForm.reset();
+  
       els.loginError.textContent =
-        "No se ha podido cargar el inventario.";
-
-      return;
+        "";
+  
+  
+      await showDashboard();
+  
+  
+      // =================================================
+      // 6. Avisar a app.js
+      // =================================================
+  
+      window.dispatchEvent(
+        new CustomEvent(
+          "app:session-ready"
+        )
+      );
+  
+  
+    } catch (error) {
+  
+      console.error(
+        "❌ Error inesperado durante el login:",
+        error
+      );
+  
+  
+      els.loginError.textContent =
+        "Ha ocurrido un error al iniciar sesión.";
+  
     }
-
-
-    // -------------------------------------------------
-    // 6. Entrar en la aplicación
-    // -------------------------------------------------
-
-    els.loginForm.reset();
-
-    els.loginError.textContent = "";
-
-    await showDashboard();
-
-  } catch (error) {
-
-    console.error(
-      "❌ Error inesperado durante el login:",
-      error
-    );
-
-    els.loginError.textContent =
-      "Ha ocurrido un error al iniciar sesión.";
+  
   }
-}
 
 
 // =====================================================
@@ -223,6 +262,16 @@ export async function showDashboard() {
 
   });
 
+  els.inventoryManagerOnly.forEach((node) => {
+
+    node.classList.toggle(
+      "hidden",
+      !["admin", "jefeBarra"].includes(
+        appState.session?.role
+      )
+    );
+  
+  });
 
   // Los usuarios que no sean admin
   // entran directamente en la vista diaria
@@ -285,25 +334,54 @@ export async function logout() {
 
 export function showView(viewId) {
 
-  els.views.forEach((view) => {
-
-    view.classList.toggle(
-      "hidden",
-      view.id !== viewId
-    );
-
-  });
-
-
-  els.tabs.forEach((tab) => {
-
-    tab.classList.toggle(
-      "active",
-      tab.dataset.view === viewId
-    );
-
-  });
-}
+    // =====================================================
+    // MOSTRAR / OCULTAR VISTAS
+    // =====================================================
+  
+    els.views.forEach((view) => {
+  
+      view.classList.toggle(
+        "hidden",
+        view.id !== viewId
+      );
+  
+    });
+  
+  
+    // =====================================================
+    // ACTIVAR PESTAÑA
+    // =====================================================
+  
+    els.tabs.forEach((tab) => {
+  
+      tab.classList.toggle(
+        "active",
+        tab.dataset.view === viewId
+      );
+  
+    });
+  
+  
+    // =====================================================
+    // RESUMEN OPERATIVO
+    // Solo se muestra en Barra y Caja
+    // =====================================================
+  
+    if (els.operationalSummary) {
+  
+      const showSummary =
+        viewId === "dailyView" ||
+        viewId === "cashView";
+  
+  
+      els.operationalSummary.classList.toggle(
+        "hidden",
+        !showSummary
+      );
+  
+    }
+  
+  }
 
 
 // =====================================================

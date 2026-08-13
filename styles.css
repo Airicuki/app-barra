@@ -3525,3 +3525,117 @@
     background:
       rgba(91, 65, 166, 0.42);
   }
+
+  /* =====================================================
+   CAMPO DE CONTRASEÑA
+   ===================================================== */
+
+.password-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+
+.password-input-wrapper {
+  position: relative !important;
+
+  display: block !important;
+
+  width: 100%;
+
+  height: 48px;
+}
+
+
+/* El input ocupa todo el campo */
+
+.password-input-wrapper input {
+  box-sizing: border-box;
+
+  width: 100% !important;
+  height: 48px;
+
+  padding:
+    0 48px 0 14px !important;
+}
+
+
+/* Botón del ojo */
+
+#loginForm .password-toggle {
+  position: absolute !important;
+
+  top: 50% !important;
+  right: 8px !important;
+
+  transform: translateY(-50%) !important;
+
+  width: 36px !important;
+  height: 36px !important;
+
+  min-width: 36px !important;
+  min-height: 36px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  border: 0 !important;
+
+  background: transparent !important;
+
+  color: #6b6875;
+
+  cursor: pointer;
+
+  border-radius: 8px;
+
+  box-shadow: none !important;
+}
+
+
+/* Icono */
+
+.password-eye {
+  width: 20px;
+  height: 20px;
+
+  fill: none;
+
+  stroke: currentColor;
+
+  stroke-width: 1.8;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  pointer-events: none;
+}
+
+
+/* Hover */
+
+#loginForm .password-toggle:hover {
+  background:
+    rgba(91, 65, 166, 0.08);
+
+  color:
+    rgb(91, 65, 166);
+}
+
+
+/* Focus */
+
+#loginForm .password-toggle:focus-visible {
+
+  outline:
+    2px solid rgb(91, 65, 166);
+
+  outline-offset:
+    1px;
+}

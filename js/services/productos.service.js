@@ -8,18 +8,13 @@ export async function getProducts() {
     .order("nombre");
 }
 
-export async function updateProduct(
-  productId,
-  data
-) {
-  return await db
-    .from("productos")
-    .update({
-      nombre: data.nombre,
-      stock: data.stock,
-      precio: data.precio
-    })
-    .eq("id", productId)
-    .select()
-    .single();
-}
+export async function updateProduct(id, changes) {
+
+    return await db
+      .from("productos")
+      .update(changes)
+      .eq("id", id)
+      .select()
+      .single();
+  
+  }

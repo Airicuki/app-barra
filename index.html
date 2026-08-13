@@ -96,10 +96,6 @@
     }
 
 
-    /* ---------------------------------------------------------
-       Tarjeta principal
-       --------------------------------------------------------- */
-
     .report-card {
       display: grid;
 
@@ -137,10 +133,6 @@
         1px solid #eeeaf5;
     }
 
-
-    /* ---------------------------------------------------------
-       Resumen caja
-       --------------------------------------------------------- */
 
     .report-card .summary-grid.compact {
       grid-column: 1 / -1;
@@ -188,10 +180,6 @@
       font-size: 22px;
     }
 
-
-    /* ---------------------------------------------------------
-       Conteo efectivo
-       --------------------------------------------------------- */
 
     .report-card > h3:nth-child(3) {
       grid-column: 1 / -1;
@@ -288,10 +276,6 @@
     }
 
 
-    /* ---------------------------------------------------------
-       Tablas
-       --------------------------------------------------------- */
-
     .report-card .table-wrapper {
       min-width: 0;
 
@@ -365,10 +349,6 @@
       grid-column: 2;
     }
 
-
-    /* ---------------------------------------------------------
-       Resumen productos
-       --------------------------------------------------------- */
 
     .report-product-summary {
       display: grid;
@@ -470,10 +450,6 @@
     }
 
 
-    /* ---------------------------------------------------------
-       Mensajes
-       --------------------------------------------------------- */
-
     .cash-report .error,
     .report-product-summary .error {
 
@@ -490,10 +466,6 @@
         12px;
     }
 
-
-    /* ---------------------------------------------------------
-       Responsive informes
-       --------------------------------------------------------- */
 
     @media (max-width: 1000px) {
 
@@ -710,8 +682,6 @@
     }
 
 
-    /* Separación entre campos */
-
     #loginForm {
 
       display:
@@ -893,18 +863,47 @@
           </label>
 
 
-          <label>
+          
+          <label class="password-field">
 
             Contraseña
-
-            <input
-              id="password"
-              type="password"
-              autocomplete="current-password"
-              required
-              placeholder="Introduce la contraseña"
-            >
-
+          
+            <div class="password-input-wrapper">
+          
+              <input
+                id="password"
+                type="password"
+                autocomplete="current-password"
+                required
+                placeholder="Introduce la contraseña"
+              >
+          
+              <button
+                id="togglePassword"
+                type="button"
+                class="password-toggle"
+                aria-label="Mostrar contraseña"
+                title="Mostrar contraseña"
+              >
+                <svg
+                  class="password-eye"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"
+                  />
+          
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="2.8"
+                  />
+                </svg>
+              </button>
+          
+            </div>
+          
           </label>
 
 
@@ -965,9 +964,7 @@
     >
 
 
-      <!-- ===================================================
-           CABECERA
-           =================================================== -->
+      <!-- CABECERA -->
 
       <header class="app-header">
 
@@ -1021,9 +1018,7 @@
 
 
 
-      <!-- ===================================================
-           NAVEGACIÓN
-           =================================================== -->
+      <!-- NAVEGACIÓN -->
 
       <nav
         class="tabs"
@@ -1089,9 +1084,7 @@
 
 
 
-      <!-- ===================================================
-           DÍA OPERATIVO
-           =================================================== -->
+      <!-- DÍA OPERATIVO -->
 
       <section class="day-band">
 
@@ -1119,11 +1112,13 @@
 
 
       <!-- ===================================================
-           RESUMEN
+           RESUMEN OPERATIVO
+           SOLO BARRA Y CAJA
            =================================================== -->
 
       <section
-        class="summary-grid"
+        id="operationalSummary"
+        class="summary-grid operational-summary"
         aria-label="Resumen semanal"
       >
 
@@ -1546,7 +1541,7 @@
 
           <button
             id="addProductBtn"
-            class="secondary admin-only"
+            class="inventory-manager-only"
             type="button"
           >
             Añadir producto
@@ -1714,8 +1709,6 @@
 
 
 
-        <!-- DÍAS -->
-
         <section class="rancho-day-selector">
 
 
@@ -1765,8 +1758,6 @@
         ></div>
 
 
-
-        <!-- PERSONAS -->
 
         <section class="rancho-panel">
 
@@ -1846,8 +1837,6 @@
 
 
 
-        <!-- TURNOS -->
-
         <section class="rancho-panel">
 
 
@@ -1880,8 +1869,6 @@
         </section>
 
 
-
-        <!-- COMIDAS -->
 
         <section class="rancho-panel">
 
@@ -2212,7 +2199,7 @@
 
         <button
           data-remove
-          class="danger admin-only"
+          class="danger inventory-manager-only"
           type="button"
         >
           Eliminar

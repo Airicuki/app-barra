@@ -30,7 +30,6 @@ export async function loadProductsFromSupabase() {
     error
   } = await getProducts();
 
-
   if (error) {
 
     console.error(
@@ -114,7 +113,7 @@ export function renderInventory() {
 
 
       // --------------------------------------------------------
-      // PRODUCTO
+      // CAMPOS
       // --------------------------------------------------------
 
       const nameInput =
@@ -136,20 +135,26 @@ export function renderInventory() {
 
 
       if (nameInput) {
+
         nameInput.value =
           product.name;
+
       }
 
 
       if (stockInput) {
+
         stockInput.value =
           product.stock;
+
       }
 
 
       if (priceInput) {
+
         priceInput.value =
           product.price;
+
       }
 
 
@@ -184,21 +189,33 @@ export function renderInventory() {
 // ============================================================
 // AÑADIR PRODUCTO
 // ============================================================
+//
+// IMPORTANTE:
+// El producto se crea directamente en Supabase.
+// No se crea solamente en memoria.
+// ============================================================
 
-export function addProduct() {
+export async function addProduct() {
+
+  if (
+    !canManageInventory(
+      appState.session
+    )
+  ) {
+
+    return;
+  }
+
 
   const product = {
 
-    id:
-      crypto.randomUUID(),
-
-    name:
+    nombre:
       "Nuevo producto",
 
     stock:
       0,
 
-    price:
+    precio:
       0,
 
     activo:
@@ -207,27 +224,108 @@ export function addProduct() {
   };
 
 
-  state.products.push(
-    product
-  );
+  try {
+
+    console.log(
+      "➕ Creando producto en Supabase..."
+    );
 
 
-  saveState();
+    const {
+      data,
+      error
+    } = await db
+      .from("productos")
+      .insert(product)
+      .select()
+      .single();
 
 
-  renderInventory();
+    if (error) {
+
+      console.error(
+        "❌ Error creando producto en Supabase:",
+        error
+      );
 
 
-  console.log(
-    "➕ Producto añadido:",
-    product
-  );
+      alert(
+        "No se ha podido crear el producto."
+      );
+
+
+      return;
+    }
+
+
+    // --------------------------------------------------------
+    // Añadir al estado local SOLO después del INSERT correcto
+    // --------------------------------------------------------
+
+    const newProduct = {
+
+      id:
+        data.id,
+
+      name:
+        data.nombre,
+
+      stock:
+        Number(
+          data.stock || 0
+        ),
+
+      price:
+        Number(
+          data.precio || 0
+        ),
+
+      activo:
+        data.activo
+
+    };
+
+
+    state.products.push(
+      newProduct
+    );
+
+
+    saveState();
+
+
+    renderInventory();
+
+
+    console.log(
+      "➕ Producto añadido en Supabase:",
+      newProduct
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "❌ Error inesperado creando producto:",
+      error
+    );
+
+
+    alert(
+      "Ha ocurrido un error al crear el producto."
+    );
+
+  }
 
 }
 
 
 // ============================================================
 // GUARDAR PRODUCTO
+// ============================================================
+//
+// Aquí sí se guarda el stock/precio/nombre.
+// Los botones + / - NO llaman a este método.
 // ============================================================
 
 async function saveProduct(row) {
@@ -237,6 +335,7 @@ async function saveProduct(row) {
       appState.session
     )
   ) {
+
     return;
   }
 
@@ -356,7 +455,25 @@ async function saveProduct(row) {
     }
 
 
-    // Actualizar estado local
+    if (!data) {
+
+      console.error(
+        "❌ Supabase no devolvió el producto actualizado."
+      );
+
+
+      alert(
+        "No se ha podido confirmar la actualización."
+      );
+
+
+      return;
+    }
+
+
+    // --------------------------------------------------------
+    // ACTUALIZAR ESTADO LOCAL
+    // --------------------------------------------------------
 
     product.name =
       data.nombre;
@@ -372,6 +489,10 @@ async function saveProduct(row) {
       Number(
         data.precio || 0
       );
+
+
+    product.activo =
+      data.activo;
 
 
     saveState();
@@ -401,6 +522,7 @@ async function saveProduct(row) {
 
     }
 
+
   } catch (error) {
 
     console.error(
@@ -412,6 +534,7 @@ async function saveProduct(row) {
     alert(
       "Ha ocurrido un error al guardar."
     );
+
 
   } finally {
 
@@ -430,14 +553,23 @@ async function saveProduct(row) {
 // ============================================================
 // CAMBIAR STOCK CON + / -
 // ============================================================
+//
+// SOLO modifica el input.
+// NO toca Supabase.
+// NO llama a saveProduct().
+// ============================================================
 
-function changeStock(row, increase) {
+function changeStock(
+  row,
+  increase
+) {
 
   if (
     !canManageInventory(
       appState.session
     )
   ) {
+
     return;
   }
 
@@ -468,11 +600,155 @@ function changeStock(row, increase) {
         );
 
 
-  // Solo cambia el valor visual.
-  // NO se guarda en Supabase.
-
   stockInput.value =
     newStock;
+
+}
+
+
+// ============================================================
+// ELIMINAR PRODUCTO
+// ============================================================
+
+async function removeProduct(row) {
+
+  if (
+    !canManageInventory(
+      appState.session
+    )
+  ) {
+
+    return;
+  }
+
+
+  const productId =
+    row.dataset.productId;
+
+
+  const product =
+    state.products.find(
+      (item) =>
+        item.id === productId
+    );
+
+
+  if (!product) {
+
+    console.error(
+      "❌ Producto no encontrado:",
+      productId
+    );
+
+    return;
+  }
+
+
+  const confirmed =
+    confirm(
+      `¿Quieres eliminar "${product.name}"?`
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  const removeButton =
+    row.querySelector(
+      "[data-remove]"
+    );
+
+
+  if (removeButton) {
+
+    removeButton.disabled =
+      true;
+
+    removeButton.textContent =
+      "Eliminando...";
+
+  }
+
+
+  try {
+
+    const {
+      error
+    } =
+      await db
+        .from("productos")
+        .delete()
+        .eq(
+          "id",
+          productId
+        );
+
+
+    if (error) {
+
+      console.error(
+        "❌ Error eliminando producto:",
+        error
+      );
+
+
+      alert(
+        "No se ha podido eliminar el producto."
+      );
+
+
+      return;
+    }
+
+
+    // --------------------------------------------------------
+    // Eliminar del estado local
+    // --------------------------------------------------------
+
+    state.products =
+      state.products.filter(
+        (item) =>
+          item.id !== productId
+      );
+
+
+    saveState();
+
+
+    renderInventory();
+
+
+    console.log(
+      "🗑️ Producto eliminado:",
+      product
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "❌ Error inesperado eliminando producto:",
+      error
+    );
+
+
+    alert(
+      "Ha ocurrido un error al eliminar el producto."
+    );
+
+
+  } finally {
+
+    if (removeButton) {
+
+      removeButton.disabled =
+        false;
+
+    }
+
+  }
 
 }
 
@@ -481,11 +757,16 @@ function changeStock(row, increase) {
 // ACTUALIZAR INVENTARIO
 // ============================================================
 //
-// Esta función gestiona:
-//   - Enter sobre un campo → guardar
-//   - Botón Guardar → guardar
-//   - Botón + → aumentar stock
-//   - Botón − → disminuir stock
+// Gestiona:
+//
+//   CLICK
+//     +             → cambia stock visual
+//     -             → cambia stock visual
+//     Guardar       → guarda en Supabase
+//     Eliminar      → elimina de Supabase
+//
+//   ENTER
+//     → guarda el producto
 //
 // ============================================================
 
@@ -496,6 +777,7 @@ export async function updateInventory(event) {
       appState.session
     )
   ) {
+
     return;
   }
 
@@ -586,7 +868,26 @@ export async function updateInventory(event) {
     }
 
 
+    // --------------------------------------------------------
+    // ELIMINAR
+    // --------------------------------------------------------
+
+    if (
+      button.hasAttribute(
+        "data-remove"
+      )
+    ) {
+
+      await removeProduct(
+        row
+      );
+
+      return;
+    }
+
+
     return;
+
   }
 
 
@@ -600,6 +901,7 @@ export async function updateInventory(event) {
   ) {
 
     event.preventDefault();
+
 
     await saveProduct(
       row

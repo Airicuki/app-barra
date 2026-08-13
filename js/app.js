@@ -59,6 +59,65 @@ import {
 } from "./modules/dashboard.js";
 
 
+// =====================================================
+// CARGAR TODOS LOS DATOS DE LA APLICACIÓN
+// =====================================================
+
+async function loadApplicationData() {
+
+  console.log(
+    "📦 Cargando datos de la aplicación..."
+  );
+
+
+  // ===================================================
+  // CARGAR DATOS DESDE SUPABASE
+  // ===================================================
+
+  await loadProductsFromSupabase();
+
+  await loadCashFromSupabase();
+
+  await loadNotas();
+
+  await loadRancho();
+
+
+  // ===================================================
+  // RENDERIZAR MÓDULOS
+  // ===================================================
+
+  renderInventory();
+
+  renderVentas();
+
+  renderPerdidas();
+
+  renderCaja();
+
+  renderNotas();
+
+  renderRancho();
+
+
+  // ===================================================
+  // DASHBOARD
+  // ===================================================
+
+  await renderDashboard();
+
+
+  console.log(
+    "✅ Datos de la aplicación cargados"
+  );
+
+}
+
+
+// =====================================================
+// INICIALIZACIÓN DE LA APLICACIÓN
+// =====================================================
+
 document.addEventListener(
   "DOMContentLoaded",
   async () => {
@@ -68,9 +127,9 @@ document.addEventListener(
     );
 
 
-    // =====================================================
+    // =================================================
     // LOGIN
-    // =====================================================
+    // =================================================
 
     if (els.loginForm) {
 
@@ -82,9 +141,107 @@ document.addEventListener(
     }
 
 
-    // =====================================================
+    // =================================================
+    // MOSTRAR / OCULTAR CONTRASEÑA
+    // =================================================
+
+    if (
+      els.togglePassword &&
+      els.password
+    ) {
+
+      els.togglePassword.addEventListener(
+        "click",
+        () => {
+
+          const visible =
+            els.password.type === "text";
+
+
+          els.password.type =
+            visible
+              ? "password"
+              : "text";
+
+
+          els.togglePassword.setAttribute(
+            "aria-label",
+            visible
+              ? "Mostrar contraseña"
+              : "Ocultar contraseña"
+          );
+
+
+          els.togglePassword.setAttribute(
+            "title",
+            visible
+              ? "Mostrar contraseña"
+              : "Ocultar contraseña"
+          );
+
+
+          // -------------------------------------------------
+          // CAMBIAR ICONO
+          // -------------------------------------------------
+
+          els.togglePassword.innerHTML =
+            visible
+
+              ? `
+                <svg
+                  class="password-eye"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+
+                  <path
+                    d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"
+                  />
+
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="2.8"
+                  />
+
+                </svg>
+              `
+
+              : `
+                <svg
+                  class="password-eye"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+
+                  <path
+                    d="M3 3l18 18"
+                  />
+
+                  <path
+                    d="M10.6 6.2A9.8 9.8 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.1 3.7"
+                  />
+
+                  <path
+                    d="M6.2 6.7C3.9 8.1 2.5 12 2.5 12s3.5 6 9.5 6c1.3 0 2.5-.3 3.5-.7"
+                  />
+
+                  <path
+                    d="M9.9 9.9a3 3 0 0 0 4.2 4.2"
+                  />
+
+                </svg>
+              `;
+
+        }
+      );
+
+    }
+
+
+    // =================================================
     // LOGOUT
-    // =====================================================
+    // =================================================
 
     if (els.logoutBtn) {
 
@@ -96,36 +253,39 @@ document.addEventListener(
     }
 
 
-    // =====================================================
+    // =================================================
     // PESTAÑAS
-    // =====================================================
+    // =================================================
 
-    els.tabs.forEach((tab) => {
+    els.tabs.forEach(
+      (tab) => {
 
-      tab.addEventListener(
-        "click",
-        () => {
+        tab.addEventListener(
+          "click",
+          () => {
 
-          const viewId =
-            tab.dataset.view;
+            const viewId =
+              tab.dataset.view;
 
-          if (viewId) {
 
-            showView(
-              viewId
-            );
+            if (viewId) {
+
+              showView(
+                viewId
+              );
+
+            }
 
           }
+        );
 
-        }
-      );
-
-    });
+      }
+    );
 
 
-    // =====================================================
+    // =================================================
     // INVENTARIO
-    // =====================================================
+    // =================================================
 
     if (els.addProductBtn) {
 
@@ -146,7 +306,7 @@ document.addEventListener(
       );
 
 
-      // Botones + / - / Guardar
+      // Botones + / - / Guardar / Eliminar
       els.inventoryRows.addEventListener(
         "click",
         updateInventory
@@ -155,9 +315,9 @@ document.addEventListener(
     }
 
 
-    // =====================================================
+    // =================================================
     // FECHA OPERATIVA
-    // =====================================================
+    // =================================================
 
     if (els.entryDate) {
 
@@ -167,17 +327,41 @@ document.addEventListener(
     }
 
 
-    // =====================================================
-    // COMPROBAR SESIÓN SUPABASE
-    // =====================================================
+    // =================================================
+    // INICIALIZAR MÓDULOS
+    // =================================================
+    //
+    // Los inicializamos al arrancar la aplicación.
+    // No hacen la carga de datos hasta que exista sesión.
+    //
+    // =================================================
+
+    await initVentas();
+
+    initPerdidas();
+
+    initCaja();
+
+    initInformes();
+
+    initNotas();
+
+    initRancho();
+
+    await initDashboard();
+
+
+    // =================================================
+    // COMPROBAR SESIÓN EXISTENTE
+    // =================================================
 
     const hasSession =
       await testAuth();
 
 
-    // =====================================================
-    // SI HAY SESIÓN
-    // =====================================================
+    // =================================================
+    // SI YA EXISTE SESIÓN
+    // =================================================
 
     if (hasSession) {
 
@@ -187,77 +371,64 @@ document.addEventListener(
       );
 
 
-      // ===================================================
-      // INICIALIZAR MÓDULOS
-      // ===================================================
-      //
-      // IMPORTANTE:
-      // Estos módulos se inicializan DESPUÉS de comprobar
-      // la sesión para evitar peticiones a Supabase como
-      // usuario "anon".
-      //
-      // ===================================================
-
-      await initVentas();
-
-      initPerdidas();
-
-      initCaja();
-
-      initInformes();
-
-      initNotas();
-
-      initRancho();
-
-      await initDashboard();
-
-
-      // ===================================================
+      // -----------------------------------------------
       // CARGAR DATOS
-      // ===================================================
+      // -----------------------------------------------
 
-      await loadProductsFromSupabase();
-
-      await loadCashFromSupabase();
-
-      await loadNotas();
-
-      await loadRancho();
+      await loadApplicationData();
 
 
-      // ===================================================
-      // RENDERIZAR
-      // ===================================================
-
-      renderInventory();
-
-      renderVentas();
-
-      renderPerdidas();
-
-      renderCaja();
-
-      renderNotas();
-
-      renderRancho();
-
-
-      // ===================================================
-      // DASHBOARD
-      // ===================================================
-
-      await renderDashboard();
-
-
-      // ===================================================
+      // -----------------------------------------------
       // MOSTRAR DASHBOARD
-      // ===================================================
+      // -----------------------------------------------
 
       await showDashboard();
 
+    }
 
-    } else {
+
+    // =================================================
+    // LOGIN REALIZADO
+    // =================================================
+    //
+    // auth.js lanzará este evento después de crear
+    // correctamente appState.session.
+    //
+    // Esto hace que el primer login y una sesión
+    // restaurada utilicen exactamente el mismo flujo.
+    //
+    // =================================================
+
+    window.addEventListener(
+      "app:session-ready",
+      async () => {
+
+        console.log(
+          "🔐 Sesión iniciada. Cargando datos..."
+        );
+
+
+        if (!appState.session) {
+
+          console.error(
+            "❌ No existe sesión de aplicación."
+          );
+
+          return;
+        }
+
+
+        await loadApplicationData();
+
+      }
+    );
+
+
+    // =================================================
+    // SIN SESIÓN
+    // =================================================
+
+    if (!hasSession) {
 
       console.log(
         "🔓 Esperando login..."
