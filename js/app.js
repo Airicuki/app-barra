@@ -12,6 +12,12 @@ import {
 } from "./modules/ventas.js";
 
 import {
+    initCaja,
+    renderCaja,
+    loadCashFromSupabase
+  } from "./modules/caja.js";
+
+import {
   showDashboard,
   login,
   logout,
@@ -30,6 +36,16 @@ import {
     initPerdidas,
     renderPerdidas
   } from "./modules/perdidas.js";
+
+import {
+    initInformes
+} from "./modules/informes.js";
+
+import {
+    initNotas,
+    renderNotas,
+    loadNotas
+} from "./modules/notas.js";
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -126,6 +142,9 @@ document.addEventListener(
 
     initVentas();
     initPerdidas();
+    initCaja();
+    initInformes();
+    initNotas();
 
 
     // =====================================================
@@ -154,6 +173,8 @@ document.addEventListener(
 
       await loadProductsFromSupabase();
 
+      await loadCashFromSupabase();
+      await loadNotas();
 
       // ---------------------------------------------------
       // Render inicial
@@ -164,6 +185,10 @@ document.addEventListener(
       renderVentas();
 
       renderPerdidas();
+
+      renderCaja();
+
+      renderNotas();
 
 
       // ---------------------------------------------------

@@ -1,18 +1,23 @@
 import { db } from "../config/supabase.js";
 
-export async function saveCashToSupabase({
-  date,
-  cash,
-  username
-}) {
+
+// ============================================================
+// GUARDAR CAJA
+// ============================================================
+
+export async function saveCaja(
+  fecha,
+  usuario,
+  datos
+) {
   return await db
     .from("caja")
     .upsert(
       {
-        fecha: date,
+        fecha,
         tipo: "diaria",
-        datos: cash,
-        usuario: username,
+        datos,
+        usuario,
         actualizado_en:
           new Date().toISOString()
       },
@@ -24,14 +29,22 @@ export async function saveCashToSupabase({
     .single();
 }
 
-export async function getCashFromSupabase(
-  date
+
+// ============================================================
+// CARGAR CAJA
+// ============================================================
+
+export async function getCaja(
+  fecha
 ) {
   return await db
     .from("caja")
     .select(
       "id, fecha, tipo, datos, usuario, actualizado_en"
     )
-    .eq("fecha", date)
+    .eq(
+      "fecha",
+      fecha
+    )
     .maybeSingle();
 }
