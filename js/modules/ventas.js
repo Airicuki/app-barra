@@ -10,39 +10,85 @@ import {
   
   import { formatMoney } from "../utils/format.js";
   
-  import {
-    registrarVenta
-  } from "../services/ventas.service.js";
+  import { db } from "../config/supabase.js";
   
   import {
-    loadProductsFromSupabase
-  } from "./inventario.js";
+    loadBarProductsFromSupabase
+  } from "../services/productos-barra.service.js";
   
   
   // ============================================================
   // INICIALIZACIÓN
   // ============================================================
   
-  export function initVentas() {
+  export async function initVentas() {
+  
+    console.log(
+      "🍺 Inicializando módulo de ventas de barra..."
+    );
+  
+  
+    // ----------------------------------------------------------
+    // BOTONES DE CANTIDAD
+    // ----------------------------------------------------------
   
     if (els.dailyRows) {
+  
       els.dailyRows.addEventListener(
         "click",
         changeQuantity
       );
+  
     }
   
+  
+    // ----------------------------------------------------------
+    // BOTÓN GUARDAR VENTA
+    // ----------------------------------------------------------
+  
     if (els.saveTransactionBtn) {
+  
       els.saveTransactionBtn.addEventListener(
         "click",
         saveTransaction
       );
+  
     }
+  
+  
+    // ----------------------------------------------------------
+    // CARGAR PRODUCTOS DE BARRA
+    // ----------------------------------------------------------
+  
+    const loaded =
+      await loadBarProductsFromSupabase();
+  
+  
+    if (!loaded) {
+  
+      console.error(
+        "❌ No se pudieron cargar los productos de barra."
+      );
+  
+      return false;
+  
+    }
+  
+  
+    // ----------------------------------------------------------
+    // RENDER
+    // ----------------------------------------------------------
+  
+    renderProductSteppers();
+  
+  
+    return true;
+  
   }
   
   
   // ============================================================
-  // RENDER
+  // RENDER PRINCIPAL
   // ============================================================
   
   export function renderVentas() {
@@ -50,6 +96,7 @@ import {
     renderProductSteppers();
   
     renderTransactions();
+  
   }
   
   
@@ -57,32 +104,31 @@ import {
   // PRODUCTOS PARA VENTA
   // ============================================================
   
-  function renderProductSteppers() {
+  export function renderProductSteppers() {
   
-    renderStepperList(
-      els.dailyRows,
-      cart,
-      "sale"
-    );
+    renderBarProducts();
   
     renderCartSummary();
+  
   }
   
   
-  function renderStepperList(
-    container,
-    source,
-    mode
-  ) {
+  // ============================================================
+  // RENDER PRODUCTOS DE BARRA
+  // ============================================================
   
-    if (!container) {
+  function renderBarProducts() {
+  
+    if (!els.dailyRows) {
       return;
     }
+  
   
     const template =
       document.querySelector(
         "#productStepperTemplate"
       );
+  
   
     if (!template) {
   
@@ -91,11 +137,52 @@ import {
       );
   
       return;
+  
     }
   
-    container.replaceChildren();
   
-    state.products.forEach(
+    els.dailyRows.replaceChildren();
+  
+  
+    const products =
+      state.barProducts || [];
+  
+  
+    // ----------------------------------------------------------
+    // SIN PRODUCTOS
+    // ----------------------------------------------------------
+  
+    if (!products.length) {
+  
+      const empty =
+        document.createElement(
+          "article"
+        );
+  
+  
+      empty.className =
+        "row-card";
+  
+  
+      empty.textContent =
+        "No hay productos configurados para la barra.";
+  
+  
+      els.dailyRows.append(
+        empty
+      );
+  
+  
+      return;
+  
+    }
+  
+  
+    // ----------------------------------------------------------
+    // PRODUCTOS
+    // ----------------------------------------------------------
+  
+    products.forEach(
       (product) => {
   
         const row =
@@ -103,51 +190,78 @@ import {
             .firstElementChild
             .cloneNode(true);
   
+  
         row.dataset.productId =
           product.id;
   
+  
         row.dataset.mode =
-          mode;
+          "sale";
+  
+  
+        // ------------------------------------------------------
+        // NOMBRE
+        // ------------------------------------------------------
   
         const name =
           row.querySelector(
             "[data-name]"
           );
   
-        const stock =
+  
+        if (name) {
+  
+          name.textContent =
+            product.name;
+  
+        }
+  
+  
+        // ------------------------------------------------------
+        // PRECIO
+        // ------------------------------------------------------
+  
+        const price =
           row.querySelector(
             "[data-stock]"
           );
+  
+  
+        if (price) {
+  
+          price.textContent =
+            `Precio: ${formatMoney(product.price)}`;
+  
+        }
+  
+  
+        // ------------------------------------------------------
+        // CANTIDAD
+        // ------------------------------------------------------
   
         const qty =
           row.querySelector(
             "[data-qty]"
           );
   
-        if (name) {
-          name.textContent =
-            product.name;
-        }
-  
-        if (stock) {
-          stock.textContent =
-            `Stock actual: ${
-              product.stock
-            } · ${
-              formatMoney(
-                product.price
-              )
-            }`;
-        }
   
         if (qty) {
+  
           qty.textContent =
-            source[product.id] || 0;
+            cart[
+              product.id
+            ] || 0;
+  
         }
   
-        container.append(row);
+  
+        els.dailyRows.append(
+          row
+        );
+  
       }
     );
+  
   }
   
   
@@ -160,12 +274,14 @@ import {
     const items =
       cartItems(cart);
   
+  
     const units =
       items.reduce(
         (sum, item) =>
           sum + item.qty,
         0
       );
+  
   
     const total =
       items.reduce(
@@ -176,24 +292,46 @@ import {
         0
       );
   
+  
+    // ----------------------------------------------------------
+    // TOTAL
+    // ----------------------------------------------------------
+  
     if (els.cartTotal) {
+  
       els.cartTotal.textContent =
         formatMoney(total);
+  
     }
   
+  
+    // ----------------------------------------------------------
+    // UNIDADES
+    // ----------------------------------------------------------
+  
     if (els.cartUnits) {
+  
       els.cartUnits.textContent =
         `${units} ${
           units === 1
             ? "producto"
             : "productos"
         }`;
+  
     }
   
+  
+    // ----------------------------------------------------------
+    // BOTÓN GUARDAR
+    // ----------------------------------------------------------
+  
     if (els.saveTransactionBtn) {
+  
       els.saveTransactionBtn.disabled =
         units === 0;
+  
     }
+  
   }
   
   
@@ -203,35 +341,50 @@ import {
   
   function cartItems(source) {
   
-    return Object.entries(source)
+    return Object.entries(
+      source || {}
+    )
       .map(
         ([productId, qty]) => {
   
           const product =
-            state.products.find(
+            (
+              state.barProducts || []
+            ).find(
               (item) =>
                 item.id === productId
             );
+  
   
           if (
             !product ||
             qty <= 0
           ) {
+  
             return null;
+  
           }
   
+  
           return {
+  
             product,
+  
             productId,
+  
             qty,
+  
             price:
               Number(
                 product.price || 0
               )
+  
           };
+  
         }
       )
       .filter(Boolean);
+  
   }
   
   
@@ -246,64 +399,113 @@ import {
         "button"
       );
   
+  
     const row =
       event.target.closest(
         ".product-stepper-row"
       );
   
-    if (!button || !row) {
+  
+    if (
+      !button ||
+      !row
+    ) {
+  
       return;
+  
     }
+  
+  
+    const productId =
+      row.dataset.productId;
+  
   
     const product =
-      state.products.find(
+      (
+        state.barProducts || []
+      ).find(
         (item) =>
-          item.id ===
-          row.dataset.productId
+          item.id === productId
       );
   
+  
     if (!product) {
+  
+      console.warn(
+        "⚠️ Producto de barra no encontrado:",
+        productId
+      );
+  
       return;
+  
     }
   
-    const current =
-      cart[product.id] || 0;
   
-    const next =
+    const current =
+      cart[
+        productId
+      ] || 0;
+  
+  
+    let next;
+  
+  
+    // ----------------------------------------------------------
+    // AÑADIR
+    // ----------------------------------------------------------
+  
+    if (
       button.matches(
         "[data-plus]"
       )
-        ? current + 1
-        : Math.max(
-            0,
-            current - 1
-          );
+    ) {
   
-    const newCart = {
-      ...cart
-    };
+      next =
+        current + 1;
+  
+    }
+  
+    // ----------------------------------------------------------
+    // RESTAR
+    // ----------------------------------------------------------
+  
+    else {
+  
+      next =
+        Math.max(
+          0,
+          current - 1
+        );
+  
+    }
+  
+  
+    // ----------------------------------------------------------
+    // ACTUALIZAR CARRITO
+    // ----------------------------------------------------------
   
     if (next === 0) {
   
-      delete newCart[
-        product.id
+      delete cart[
+        productId
       ];
   
     } else {
   
-      newCart[
-        product.id
+      cart[
+        productId
       ] = next;
+  
     }
   
-    setCart(newCart);
   
     renderProductSteppers();
+  
   }
   
   
   // ============================================================
-  // GUARDAR VENTA
+  // GUARDAR VENTA DE BARRA
   // ============================================================
   
   async function saveTransaction() {
@@ -311,46 +513,44 @@ import {
     const items =
       cartItems(cart);
   
+  
+    // ----------------------------------------------------------
+    // COMPROBAR CARRITO
+    // ----------------------------------------------------------
+  
     if (!items.length) {
+  
       return;
+  
     }
   
   
     // ----------------------------------------------------------
-    // COMPROBAR STOCK
-    // ----------------------------------------------------------
-  
-    const sinStock =
-      items.find(
-        ({
-          product,
-          qty
-        }) =>
-          Number(
-            product.stock || 0
-          ) < qty
-      );
-  
-    if (sinStock) {
-  
-      alert(
-        `No hay suficiente stock de ${
-          sinStock.product.name
-        }. Stock disponible: ${
-          sinStock.product.stock
-        }`
-      );
-  
-      return;
-    }
-  
-  
-    // ----------------------------------------------------------
-    // DATOS
+    // DÍA OPERATIVO
     // ----------------------------------------------------------
   
     const date =
-      els.entryDate.value;
+      els.entryDate?.value;
+  
+  
+    if (!date) {
+  
+      console.error(
+        "❌ No se ha podido determinar el día operativo."
+      );
+  
+      alert(
+        "No se ha podido determinar el día operativo."
+      );
+  
+      return;
+  
+    }
+  
+  
+    // ----------------------------------------------------------
+    // CALCULAR TOTAL
+    // ----------------------------------------------------------
   
     const total =
       items.reduce(
@@ -362,17 +562,24 @@ import {
       );
   
   
-    if (els.saveTransactionBtn) {
-      els.saveTransactionBtn.disabled =
-        true;
+    if (
+      !els.saveTransactionBtn
+    ) {
+  
+      return;
+  
     }
+  
+  
+    els.saveTransactionBtn.disabled =
+      true;
   
   
     try {
   
-      // --------------------------------------------------------
-      // PREPARAR ITEMS
-      // --------------------------------------------------------
+      // ========================================================
+      // PREPARAR LÍNEAS
+      // ========================================================
   
       const supabaseItems =
         items.map(
@@ -381,117 +588,100 @@ import {
             qty,
             price
           }) => ({
-            productId:
+  
+            producto_id:
               product.id,
-            qty,
-            price
+  
+            cantidad:
+              qty,
+  
+            precio:
+              price
+  
           })
         );
   
   
       console.log(
-        "🛒 Guardando venta en Supabase:",
+        "🍺 Guardando venta de barra:",
         {
           usuario:
-            session?.username,
+            session.username,
+  
+          fecha:
+            date,
+  
           total,
+  
           items:
             supabaseItems
         }
       );
   
   
-      // --------------------------------------------------------
+      // ========================================================
       // GUARDAR EN SUPABASE
-      // --------------------------------------------------------
+      // ========================================================
   
       const {
         data: ventaId,
         error
-      } =
-        await registrarVenta(
-          date,
-          session.username,
-          total,
-          supabaseItems
-        );
+      } = await db.rpc(
+        "registrar_venta_barra",
+        {
   
+          p_fecha:
+            date,
+  
+          p_usuario:
+            session.username,
+  
+          p_total:
+            total,
+  
+          p_items:
+            supabaseItems
+  
+        }
+      );
+  
+  
+      // ========================================================
+      // ERROR
+      // ========================================================
   
       if (error) {
   
         console.error(
-          "❌ Error guardando venta:",
+          "❌ Error guardando venta de barra:",
           error
         );
   
-        if (
-          error.message
-            ?.toLowerCase()
-            .includes(
-              "stock insuficiente"
-            )
-        ) {
   
-          alert(
-            "No hay suficiente stock para realizar la venta."
-          );
+        alert(
+          "No se ha podido guardar la venta."
+        );
   
-        } else {
-  
-          alert(
-            "No se ha podido guardar la venta."
-          );
-        }
   
         return;
+  
       }
   
   
       console.log(
-        "✅ Venta guardada en Supabase:",
+        "✅ Venta de barra guardada en Supabase:",
         ventaId
       );
   
   
-      // --------------------------------------------------------
-      // ACTUALIZAR ENTRADAS DIARIAS
-      // --------------------------------------------------------
-  
-      items.forEach(
-        ({
-          product,
-          qty,
-          price
-        }) => {
-  
-          product.stock =
-            Math.max(
-              0,
-              Number(
-                product.stock || 0
-              ) - qty
-            );
-  
-          addEntry(
-            date,
-            product.id,
-            {
-              sold: qty,
-              lost: 0,
-              price
-            }
-          );
-        }
-      );
-  
-  
-      // --------------------------------------------------------
-      // GUARDAR TRANSACCIÓN LOCAL
-      // --------------------------------------------------------
+      // ========================================================
+      // ACTUALIZAR ESTADO LOCAL
+      // ========================================================
   
       const transaction = {
   
-        id: ventaId,
+        id:
+          ventaId,
   
         time:
           new Date()
@@ -500,6 +690,7 @@ import {
               {
                 hour:
                   "2-digit",
+  
                 minute:
                   "2-digit"
               }
@@ -515,140 +706,93 @@ import {
               qty,
               price
             }) => ({
+  
               productId:
                 product.id,
+  
               name:
                 product.name,
+  
               qty,
+  
               price
+  
             })
           ),
   
         total
+  
       };
   
   
-      state.transactions[date] =
-        state.transactions[date] ||
-        [];
+      if (
+        !state.transactions[
+          date
+        ]
+      ) {
+  
+        state.transactions[
+          date
+        ] = [];
+  
+      }
+  
   
       state.transactions[
         date
-      ].push(transaction);
+      ].push(
+        transaction
+      );
   
   
-      // --------------------------------------------------------
+      // ========================================================
       // VACIAR CARRITO
-      // --------------------------------------------------------
+      // ========================================================
   
       setCart({});
   
   
-      // --------------------------------------------------------
-      // GUARDAR CACHE LOCAL
-      // --------------------------------------------------------
-  
       saveState();
   
   
-      // --------------------------------------------------------
-      // RECARGAR INVENTARIO DESDE SUPABASE
-      // --------------------------------------------------------
-  
-      await loadProductsFromSupabase();
-  
-  
-      // --------------------------------------------------------
+      // ========================================================
       // ACTUALIZAR PANTALLA
-      // --------------------------------------------------------
+      // ========================================================
   
-      renderVentas();
+      renderProductSteppers();
+  
+      renderTransactions();
   
   
-      // --------------------------------------------------------
-      // MENSAJE
-      // --------------------------------------------------------
-  
-      if (els.saveStatus) {
-  
-        els.saveStatus.textContent =
-          "Venta guardada correctamente.";
-  
-        setTimeout(
-          () => {
-            els.saveStatus.textContent =
-              "";
-          },
-          2200
-        );
-      }
+      flash(
+        els.saveStatus,
+        "Venta guardada correctamente."
+      );
   
   
     } catch (error) {
   
       console.error(
-        "❌ Error inesperado guardando venta:",
+        "❌ Error inesperado guardando venta de barra:",
         error
       );
+  
   
       alert(
         "Ha ocurrido un error al guardar la venta."
       );
   
+  
     } finally {
   
-      if (els.saveTransactionBtn) {
-        els.saveTransactionBtn.disabled =
-          false;
-      }
-    }
-  }
+      els.saveTransactionBtn.disabled =
+        false;
   
   
-  // ============================================================
-  // ENTRADA DIARIA
-  // ============================================================
+      renderCartSummary();
   
-  function addEntry(
-    date,
-    productId,
-    movement
-  ) {
-  
-    state.entries[date] =
-      state.entries[date] ||
-      [];
-  
-    let entry =
-      state.entries[date].find(
-        (row) =>
-          row.productId ===
-          productId
-      );
-  
-    if (!entry) {
-  
-      entry = {
-        productId,
-        sold: 0,
-        lost: 0,
-        price:
-          movement.price
-      };
-  
-      state.entries[date].push(
-        entry
-      );
     }
   
-    entry.sold +=
-      movement.sold;
-  
-    entry.lost +=
-      movement.lost;
-  
-    entry.price =
-      movement.price;
   }
   
   
@@ -659,17 +803,24 @@ import {
   function renderTransactions() {
   
     if (!els.transactionRows) {
+  
       return;
+  
     }
+  
   
     const rows =
       state.transactions[
-        els.entryDate.value
+        els.entryDate?.value
       ] || [];
   
   
     els.transactionRows.replaceChildren();
   
+  
+    // ----------------------------------------------------------
+    // SIN VENTAS
+    // ----------------------------------------------------------
   
     if (!rows.length) {
   
@@ -678,19 +829,28 @@ import {
           "article"
         );
   
+  
       empty.className =
         "row-card";
   
+  
       empty.textContent =
         "Todavía no hay ventas guardadas hoy.";
+  
   
       els.transactionRows.append(
         empty
       );
   
+  
       return;
+  
     }
   
+  
+    // ----------------------------------------------------------
+    // VENTAS
+    // ----------------------------------------------------------
   
     rows
       .slice()
@@ -703,23 +863,18 @@ import {
               "article"
             );
   
+  
           card.className =
             "row-card transaction-row";
   
   
+          // ----------------------------------------------------
+          // CABECERA
+          // ----------------------------------------------------
+  
           const title =
             document.createElement(
               "div"
-            );
-  
-          const detail =
-            document.createElement(
-              "div"
-            );
-  
-          const total =
-            document.createElement(
-              "strong"
             );
   
   
@@ -732,12 +887,24 @@ import {
               "strong"
             );
   
+  
           titleStrong.textContent =
             `${transaction.time} · ${transaction.user}`;
+  
   
           title.append(
             titleStrong
           );
+  
+  
+          // ----------------------------------------------------
+          // DETALLE
+          // ----------------------------------------------------
+  
+          const detail =
+            document.createElement(
+              "div"
+            );
   
   
           detail.textContent =
@@ -749,11 +916,25 @@ import {
               .join(", ");
   
   
+          // ----------------------------------------------------
+          // TOTAL
+          // ----------------------------------------------------
+  
+          const total =
+            document.createElement(
+              "strong"
+            );
+  
+  
           total.textContent =
             formatMoney(
               transaction.total
             );
   
+  
+          // ----------------------------------------------------
+          // AÑADIR
+          // ----------------------------------------------------
   
           card.append(
             title,
@@ -765,6 +946,53 @@ import {
           els.transactionRows.append(
             card
           );
+  
         }
       );
+  
+  }
+  
+  
+  // ============================================================
+  // MENSAJE TEMPORAL
+  // ============================================================
+  
+  function flash(
+    element,
+    message
+  ) {
+  
+    if (!element) {
+  
+      return;
+  
+    }
+  
+  
+    element.textContent =
+      message;
+  
+  
+    element.classList.remove(
+      "hidden"
+    );
+  
+  
+    clearTimeout(
+      element._flashTimeout
+    );
+  
+  
+    element._flashTimeout =
+      setTimeout(
+        () => {
+  
+          element.classList.add(
+            "hidden"
+          );
+  
+        },
+        3000
+      );
+  
   }

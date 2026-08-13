@@ -1,277 +1,474 @@
 <!doctype html>
 <html lang="es">
+
 <head>
+
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0f766e">
-  <title>Barra de Bebidas</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <meta
+    name="theme-color"
+    content="#5b41a6"
+  >
+
+  <title>Peña Los Sepultureros</title>
+
+  <link
+    rel="manifest"
+    href="manifest.webmanifest"
+  >
+
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
+
+
+  <!-- =====================================================
+       ESTILOS ESPECÍFICOS DE INFORMES
+       ===================================================== -->
 
   <style id="reports-page-style">
-    /* =========================================================
-       INFORMES - DISEÑO VISUAL
-       ========================================================= */
 
     .reports-header {
       align-items: flex-start;
       margin-bottom: 18px;
     }
 
+
     .report-selector {
       display: flex;
       align-items: flex-end;
       gap: 14px;
+
       padding: 18px 20px;
       margin-bottom: 20px;
+
       background: #fff;
-      border: 1px solid #dfe5e1;
-      border-radius: 14px;
+      border: 1px solid #e1ddec;
+      border-radius: 16px;
     }
+
 
     .report-selector .date-field {
       min-width: 240px;
     }
+
 
     .report-button {
       min-height: 44px;
       padding: 0 20px;
     }
 
+
     .cash-report {
       width: 100%;
     }
 
+
     .report-placeholder {
       padding: 42px 20px;
+
       text-align: center;
+
       background: #fff;
-      border: 1px solid #dfe5e1;
-      border-radius: 14px;
+
+      border:
+        1px solid #e1ddec;
+
+      border-radius:
+        16px;
     }
+
 
     .report-placeholder-icon {
       font-size: 40px;
       margin-bottom: 8px;
     }
 
+
     .report-placeholder h3 {
       margin: 0 0 6px;
     }
 
+
     /* ---------------------------------------------------------
-       Tarjeta principal del informe
+       Tarjeta principal
        --------------------------------------------------------- */
 
     .report-card {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+
+      grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
       gap: 22px 24px;
+
       padding: 22px;
+
       background: #fff;
-      border: 1px solid #dfe5e1;
-      border-radius: 14px;
-      box-shadow: 0 2px 8px rgba(20, 35, 30, 0.04);
+
+      border:
+        1px solid #e1ddec;
+
+      border-radius:
+        16px;
+
+      box-shadow:
+        0 2px 8px rgba(40, 30, 70, 0.05);
     }
+
 
     .report-card > h3:first-child {
       grid-column: 1 / -1;
+
       margin: 0;
+
       padding-bottom: 12px;
+
       font-size: 22px;
-      border-bottom: 1px solid #edf0ee;
+
+      border-bottom:
+        1px solid #eeeaf5;
     }
 
+
     /* ---------------------------------------------------------
-       Resumen de caja
+       Resumen caja
        --------------------------------------------------------- */
 
     .report-card .summary-grid.compact {
       grid-column: 1 / -1;
+
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+      grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
       gap: 12px;
+
       margin: 0;
     }
 
+
     .report-card .summary-grid.compact article {
       min-width: 0;
+
       padding: 16px 18px;
-      background: #fafcfb;
-      border: 1px solid #e1e7e3;
-      border-radius: 12px;
+
+      background:
+        #faf9fc;
+
+      border:
+        1px solid #e5e1ee;
+
+      border-radius:
+        12px;
     }
+
 
     .report-card .summary-grid.compact article span {
       display: block;
+
       margin-bottom: 5px;
+
       font-size: 13px;
-      color: #66726c;
+
+      color:
+        #6b6875;
     }
+
 
     .report-card .summary-grid.compact article strong {
       font-size: 22px;
     }
 
+
     /* ---------------------------------------------------------
-       Conteo de efectivo
+       Conteo efectivo
        --------------------------------------------------------- */
 
     .report-card > h3:nth-child(3) {
       grid-column: 1 / -1;
+
       margin: 0;
     }
 
+
     .cash-report-counts {
       grid-column: 1 / -1;
+
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
       gap: 18px;
     }
 
+
     .cash-report-count {
       min-width: 0;
+
       padding: 16px;
-      border: 1px solid #dfe5e1;
-      border-radius: 12px;
-      background: #fff;
-      overflow: hidden;
+
+      border:
+        1px solid #e1ddec;
+
+      border-radius:
+        12px;
+
+      background:
+        #fff;
+
+      overflow:
+        hidden;
     }
 
+
     .cash-report-count h4 {
-      margin: 0 0 12px;
-      font-size: 16px;
+      margin:
+        0 0 12px;
+
+      font-size:
+        16px;
     }
+
 
     .cash-report-count table {
       width: 100%;
       border-collapse: collapse;
     }
 
+
     .cash-report-count th,
     .cash-report-count td {
       padding: 8px 7px;
-      border-bottom: 1px solid #edf0ee;
+
+      border-bottom:
+        1px solid #eeeaf5;
+
       text-align: left;
-      white-space: nowrap;
+
+      white-space:
+        nowrap;
     }
+
 
     .cash-report-count th {
       font-size: 13px;
-      background: #f7f9f8;
+
+      background:
+        #f8f7fb;
     }
+
 
     .cash-report-count th:last-child,
     .cash-report-count td:last-child {
       text-align: right;
     }
 
+
     .cash-report-count tfoot th {
       padding-top: 12px;
-      border-top: 2px solid #dfe5e1;
-      border-bottom: 0;
-      background: #fff;
+
+      border-top:
+        2px solid #e1ddec;
+
+      border-bottom:
+        0;
+
+      background:
+        #fff;
     }
 
+
     /* ---------------------------------------------------------
-       Tablas de ventas y pérdidas
+       Tablas
        --------------------------------------------------------- */
 
     .report-card .table-wrapper {
       min-width: 0;
-      overflow-x: auto;
-      border: 1px solid #dfe5e1;
-      border-radius: 12px;
+
+      overflow-x:
+        auto;
+
+      border:
+        1px solid #e1ddec;
+
+      border-radius:
+        12px;
     }
+
 
     .report-card .table-wrapper table {
       width: 100%;
       border-collapse: collapse;
     }
 
+
     .report-card .table-wrapper th,
     .report-card .table-wrapper td {
       padding: 10px 12px;
-      border-bottom: 1px solid #edf0ee;
+
+      border-bottom:
+        1px solid #eeeaf5;
+
       text-align: left;
-      white-space: nowrap;
+
+      white-space:
+        nowrap;
     }
+
 
     .report-card .table-wrapper th {
       font-size: 13px;
-      background: #f7f9f8;
+
+      background:
+        #f8f7fb;
     }
+
 
     .report-card .table-wrapper th:last-child,
     .report-card .table-wrapper td:last-child {
       text-align: right;
     }
 
+
     .report-card .table-wrapper tfoot th {
       padding-top: 12px;
-      border-top: 2px solid #dfe5e1;
-      border-bottom: 0;
-      background: #fff;
+
+      border-top:
+        2px solid #e1ddec;
+
+      border-bottom:
+        0;
+
+      background:
+        #fff;
     }
 
-    /* Si el renderCashReport usa h3 + table-wrapper para ventas */
+
     .report-card > h3:nth-of-type(2),
     .report-card > .table-wrapper:nth-of-type(1) {
       grid-column: 1;
     }
+
 
     .report-card > h3:nth-of-type(3),
     .report-card > .table-wrapper:nth-of-type(2) {
       grid-column: 2;
     }
 
+
     /* ---------------------------------------------------------
-       Tarjetas resumen por producto
+       Resumen productos
        --------------------------------------------------------- */
 
     .report-product-summary {
       display: grid;
+
       gap: 12px;
+
       margin-top: 16px;
     }
 
-    .report-product-summary .row-card.daily-row {
+
+    .report-product-summary
+    .row-card.daily-row {
+
       display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(120px, .8fr) minmax(120px, .8fr);
-      align-items: center;
+
+      grid-template-columns:
+        minmax(0, 1.5fr)
+        minmax(120px, .8fr)
+        minmax(120px, .8fr);
+
+      align-items:
+        center;
+
       gap: 20px;
-      padding: 20px 22px;
-      background: #fff;
-      border: 1px solid #dfe5e1;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(20, 35, 30, 0.03);
+
+      padding:
+        20px 22px;
+
+      background:
+        #fff;
+
+      border:
+        1px solid #e1ddec;
+
+      border-radius:
+        12px;
+
+      box-shadow:
+        0 2px 8px rgba(40, 30, 70, 0.03);
     }
 
-    .report-product-summary .product-main {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+
+    .report-product-summary
+    .product-main {
+
+      display:
+        flex;
+
+      flex-direction:
+        column;
+
+      gap:
+        5px;
     }
 
-    .report-product-summary .product-main strong {
-      font-size: 17px;
+
+    .report-product-summary
+    .product-main strong {
+
+      font-size:
+        17px;
     }
 
-    .report-product-summary .row-card.daily-row > div:not(.product-main) strong {
-      font-size: 20px;
+
+    .report-product-summary
+    .row-card.daily-row
+    > div:not(.product-main)
+    strong {
+
+      font-size:
+        20px;
     }
 
-    .report-product-summary .row-card.daily-row > div:last-child strong {
-      color: #b42318;
+
+    .report-product-summary
+    .row-card.daily-row
+    > div:last-child
+    strong {
+
+      color:
+        #b42318;
     }
 
-    /* Por si el render antiguo usa otra estructura de row-card */
-    .report-product-summary .row-card:not(.daily-row) {
-      padding: 18px 20px;
-      background: #fff;
-      border: 1px solid #dfe5e1;
-      border-radius: 12px;
+
+    .report-product-summary
+    .row-card:not(.daily-row) {
+
+      padding:
+        18px 20px;
+
+      background:
+        #fff;
+
+      border:
+        1px solid #e1ddec;
+
+      border-radius:
+        12px;
     }
+
 
     /* ---------------------------------------------------------
        Mensajes
@@ -279,339 +476,1511 @@
 
     .cash-report .error,
     .report-product-summary .error {
-      padding: 18px;
-      background: #fff7f7;
-      border: 1px solid #f0caca;
-      border-radius: 12px;
+
+      padding:
+        18px;
+
+      background:
+        #fff7f7;
+
+      border:
+        1px solid #f0caca;
+
+      border-radius:
+        12px;
     }
 
+
     /* ---------------------------------------------------------
-       Responsive
+       Responsive informes
        --------------------------------------------------------- */
 
     @media (max-width: 1000px) {
+
       .cash-report-counts {
-        grid-template-columns: 1fr;
+        grid-template-columns:
+          1fr;
       }
 
-      .report-card .summary-grid.compact {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+      .report-card
+      .summary-grid.compact {
+
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
       }
+
     }
 
+
     @media (max-width: 760px) {
+
       .report-selector {
-        flex-direction: column;
-        align-items: stretch;
+
+        flex-direction:
+          column;
+
+        align-items:
+          stretch;
       }
+
 
       .report-selector .date-field {
-        min-width: 0;
+        min-width:
+          0;
       }
 
+
       .report-card {
-        grid-template-columns: 1fr;
+
+        grid-template-columns:
+          1fr;
       }
+
 
       .report-card > h3:nth-of-type(2),
       .report-card > .table-wrapper:nth-of-type(1),
       .report-card > h3:nth-of-type(3),
       .report-card > .table-wrapper:nth-of-type(2) {
-        grid-column: 1;
+
+        grid-column:
+          1;
       }
 
-      .report-card .summary-grid.compact {
-        grid-template-columns: 1fr 1fr;
+
+      .report-card
+      .summary-grid.compact {
+
+        grid-template-columns:
+          1fr 1fr;
       }
 
-      .report-product-summary .row-card.daily-row {
-        grid-template-columns: 1fr 1fr;
+
+      .report-product-summary
+      .row-card.daily-row {
+
+        grid-template-columns:
+          1fr 1fr;
       }
 
-      .report-product-summary .product-main {
-        grid-column: 1 / -1;
+
+      .report-product-summary
+      .product-main {
+
+        grid-column:
+          1 / -1;
       }
+
     }
+
 
     @media (max-width: 480px) {
-      .report-card .summary-grid.compact {
-        grid-template-columns: 1fr;
+
+      .report-card
+      .summary-grid.compact {
+
+        grid-template-columns:
+          1fr;
       }
 
-      .report-product-summary .row-card.daily-row {
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        padding: 16px;
+
+      .report-product-summary
+      .row-card.daily-row {
+
+        grid-template-columns:
+          1fr 1fr;
+
+        gap:
+          12px;
+
+        padding:
+          16px;
       }
+
     }
 
-    /* Ocultar el resumen antiguo por producto del informe */
+
     #reportsView #reportRows {
-      display: none !important;
+      display:
+        none !important;
     }
+
+  </style>
+
+
+  <!-- =====================================================
+       AJUSTES VISUALES DEL LOGIN
+       ===================================================== -->
+
+  <style id="login-page-style">
+
+    .login-panel {
+      width:
+        min(430px, 100%);
+
+      padding:
+        34px;
+    }
+
+
+    .login-brand {
+
+      display:
+        flex;
+
+      flex-direction:
+        column;
+
+      align-items:
+        center;
+
+      text-align:
+        center;
+
+      margin-bottom:
+        28px;
+    }
+
+
+    .login-logo {
+
+      width:
+        92px;
+
+      height:
+        92px;
+
+      padding:
+        18px;
+
+      margin-bottom:
+        18px;
+
+      object-fit:
+        contain;
+
+      background:
+        rgb(91, 65, 166);
+
+      border-radius:
+        24px;
+
+      box-shadow:
+        0 8px 20px
+        rgba(91, 65, 166, 0.22);
+    }
+
+
+    .login-brand h1 {
+
+      margin:
+        4px 0 8px;
+
+      color:
+        var(--text);
+
+      font-size:
+        28px;
+
+      line-height:
+        1.2;
+    }
+
+
+    .login-brand .eyebrow {
+
+      margin:
+        0;
+
+      color:
+        rgb(91, 65, 166);
+
+      font-weight:
+        750;
+    }
+
+
+    .login-brand .muted {
+
+      margin:
+        0;
+
+      line-height:
+        1.5;
+    }
+
+
+    /* Separación entre campos */
+
+    #loginForm {
+
+      display:
+        flex;
+
+      flex-direction:
+        column;
+
+      gap:
+        16px;
+    }
+
+
+    #loginForm label {
+
+      display:
+        flex;
+
+      flex-direction:
+        column;
+    }
+
+
+    #loginForm .primary {
+
+      width:
+        100%;
+
+      min-height:
+        48px;
+
+      margin-top:
+        8px;
+
+      font-size:
+        15px;
+    }
+
+
+    #loginForm .error {
+
+      min-height:
+        18px;
+
+      margin:
+        0;
+    }
+
+
+    .credentials {
+
+      margin-top:
+        26px;
+
+      padding-top:
+        18px;
+
+      border-top:
+        1px solid var(--border);
+
+      display:
+        flex;
+
+      flex-direction:
+        column;
+
+      gap:
+        5px;
+    }
+
+
+    @media (max-width: 480px) {
+
+      .login-panel {
+
+        padding:
+          26px 20px;
+      }
+
+
+      .login-logo {
+
+        width:
+          78px;
+
+        height:
+          78px;
+
+        padding:
+          15px;
+
+        border-radius:
+          20px;
+      }
+
+
+      .login-brand h1 {
+
+        font-size:
+          24px;
+      }
+
+    }
+
   </style>
 
 </head>
+
+
 <body>
-  <main id="app" class="shell">
-    <section id="loginView" class="login-view">
+
+  <main
+    id="app"
+    class="shell"
+  >
+
+
+    <!-- =====================================================
+         LOGIN
+         ===================================================== -->
+
+    <section
+      id="loginView"
+      class="login-view"
+    >
+
       <div class="login-panel">
-        <div>
-          <p class="eyebrow">Control semanal</p>
-          <h1>Barra de Bebidas</h1>
-          <p class="muted">Inventario, ventas, caja y pérdidas diarias para trabajar desde móvil u ordenador.</p>
+
+
+        <div class="login-brand">
+
+
+          <img
+            src="./assets/img/banderaWhite.png"
+            alt="Peña Los Sepultureros"
+            class="login-logo"
+          >
+
+
+          <div>
+
+            <p class="eyebrow">
+              App de Barras
+            </p>
+
+
+            <h1>
+              Peña Los Sepultureros
+            </h1>
+
+
+            <p class="muted">
+              Inventario, ventas, caja y gestión semanal de comidas para ferias.
+            </p>
+
+          </div>
+
+
         </div>
 
-        <form id="loginForm" class="form">
+
+        <form
+          id="loginForm"
+          class="form"
+        >
+
+
           <label>
+
             Usuario
-            <input id="username" autocomplete="username" required placeholder="admin o barra">
+
+            <input
+              id="username"
+              autocomplete="username"
+              required
+              placeholder="admin o barra"
+            >
+
           </label>
+
+
           <label>
+
             Contraseña
-            <input id="password" type="password" autocomplete="current-password" required placeholder="Introduce la contraseña">
+
+            <input
+              id="password"
+              type="password"
+              autocomplete="current-password"
+              required
+              placeholder="Introduce la contraseña"
+            >
+
           </label>
-          <button class="primary" type="submit">Entrar</button>
-          <p id="loginError" class="error" role="alert"></p>
+
+
+          <button
+            class="primary"
+            type="submit"
+          >
+            Entrar
+          </button>
+
+
+          <p
+            id="loginError"
+            class="error"
+            role="alert"
+          ></p>
+
+
         </form>
 
+
         <div class="credentials">
-          <strong>Usuarios</strong>
-          <span>Admin: <code>jefeBarra</code> / <code>sepul123</code></span>
-          <span>Normal: <code>barra</code> / <code>user123</code></span>
+
+          <strong>
+            Usuarios
+          </strong>
+
+
+          <span>
+            Usuario JefeBarra Genérico:
+            <code>jefeBarra</code> /
+            <code>sepul123</code>
+          </span>
+
+
+          <span>
+            Usuario Barra Genérico:
+            <code>barra</code> /
+            <code>user123</code>
+          </span>
+
         </div>
+
+
       </div>
+
     </section>
 
-    <section id="dashboardView" class="dashboard hidden">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">Semana actual</p>
-          <h1>Barra de Bebidas</h1>
+
+
+    <!-- =====================================================
+         DASHBOARD
+         ===================================================== -->
+
+    <section
+      id="dashboardView"
+      class="dashboard hidden"
+    >
+
+
+      <!-- ===================================================
+           CABECERA
+           =================================================== -->
+
+      <header class="app-header">
+
+
+        <div class="brand">
+
+
+          <img
+            src="./assets/img/banderaWhite.png"
+            alt="Peña Los Sepultureros"
+            class="app-logo"
+          >
+
+
+          <div class="brand-text">
+
+            <strong>
+              Barra de Bebidas
+            </strong>
+
+
+            <span>
+              Gestión de barras Ferias
+            </span>
+
+          </div>
+
+
         </div>
-        <div class="session">
-          <span id="roleBadge" class="badge"></span>
-          <button id="logoutBtn" class="ghost" type="button">Salir</button>
+
+
+        <div class="header-user">
+
+
+          <span id="roleBadge">
+          </span>
+
+
+          <button
+            id="logoutBtn"
+            type="button"
+          >
+            Salir
+          </button>
+
+
         </div>
+
+
       </header>
 
-      <nav class="tabs" aria-label="Secciones">
-        <button class="tab active" data-view="dailyView" type="button">Barra</button>
-        <button class="tab" data-view="cashView" type="button">Caja</button>
-        <button class="tab" data-view="notesView" type="button">Notas</button>
-        <button class="tab" data-view="ranchoView" type="button">El Rancho</button>
-        <button class="tab" data-view="inventoryView" type="button">Inventario</button>
-        <button class="tab admin-only" data-view="reportsView" type="button">Informes</button>
+
+
+      <!-- ===================================================
+           NAVEGACIÓN
+           =================================================== -->
+
+      <nav
+        class="tabs"
+        aria-label="Secciones"
+      >
+
+
+        <button
+          class="tab active"
+          data-view="dailyView"
+          type="button"
+        >
+          Barra
+        </button>
+
+
+        <button
+          class="tab"
+          data-view="cashView"
+          type="button"
+        >
+          Caja
+        </button>
+
+
+        <button
+          class="tab"
+          data-view="notesView"
+          type="button"
+        >
+          Notas
+        </button>
+
+
+        <button
+          class="tab"
+          data-view="ranchoView"
+          type="button"
+        >
+          El Rancho
+        </button>
+
+
+        <button
+          class="tab"
+          data-view="inventoryView"
+          type="button"
+        >
+          Inventario
+        </button>
+
+
+        <button
+          class="tab admin-only"
+          data-view="reportsView"
+          type="button"
+        >
+          Informes
+        </button>
+
+
       </nav>
 
+
+
+      <!-- ===================================================
+           DÍA OPERATIVO
+           =================================================== -->
+
       <section class="day-band">
+
+
         <label class="date-field">
+
           Día operativo
-          <input id="entryDate" type="date">
+
+          <input
+            id="entryDate"
+            type="date"
+          >
+
         </label>
-        <p class="muted">Cada día se guarda de 10:00 a 10:00 del día siguiente.</p>
+
+
+        <p class="muted">
+          Cada día se guarda de 10:00 a 10:00
+          del día siguiente.
+        </p>
+
+
       </section>
 
-      <section class="summary-grid" aria-label="Resumen semanal">
+
+
+      <!-- ===================================================
+           RESUMEN
+           =================================================== -->
+
+      <section
+        class="summary-grid"
+        aria-label="Resumen semanal"
+      >
+
+
         <article>
-          <span>Ventas semana</span>
-          <strong id="weekSold">0</strong>
+
+          <span>
+            Unidades vendidas
+          </span>
+
+          <strong id="weekSold">
+            0
+          </strong>
+
         </article>
+
+
         <article>
-          <span>Pérdidas semana</span>
-          <strong id="weekLost">0</strong>
+
+          <span>
+            Pérdidas semana
+          </span>
+
+          <strong id="weekLost">
+            0
+          </strong>
+
         </article>
+
+
         <article>
-          <span>Valor vendido</span>
-          <strong id="weekRevenue">0,00 €</strong>
+
+          <span>
+            Valor vendido
+          </span>
+
+          <strong id="weekRevenue">
+            0,00 €
+          </strong>
+
         </article>
+
+
         <article>
-          <span>Stock actual</span>
-          <strong id="weekStock">0</strong>
+
+          <span>
+            Stock actual
+          </span>
+
+          <strong id="weekStock">
+            0
+          </strong>
+
         </article>
+
+
       </section>
 
-      <section id="dailyView" class="view">
+
+
+      <!-- ===================================================
+           BARRA / VENTAS
+           =================================================== -->
+
+      <section
+        id="dailyView"
+        class="view"
+      >
+
+
         <div class="section-head">
+
+
           <div>
-            <h2>Venta por transacción</h2>
-            <p class="muted">Suma productos con + y -, guarda cada venta completa al cobrar.</p>
+
+            <h2>
+              Venta por transacción
+            </h2>
+
+
+            <p class="muted">
+              Suma productos con + y -,
+              guarda cada venta completa al cobrar.
+            </p>
+
           </div>
+
+
         </div>
 
-        <div id="dailyRows" class="table-list"></div>
+
+        <div
+          id="dailyRows"
+          class="table-list"
+        ></div>
+
 
         <div class="actions-row">
+
+
           <div>
-            <strong id="cartTotal">0,00 €</strong>
-            <span id="cartUnits" class="status">0 productos</span>
+
+            <strong id="cartTotal">
+              0,00 €
+            </strong>
+
+
+            <span
+              id="cartUnits"
+              class="status"
+            >
+              0 productos
+            </span>
+
           </div>
-          <button id="saveTransactionBtn" class="primary" type="button">Guardar transacción</button>
+
+
+          <button
+            id="saveTransactionBtn"
+            class="primary"
+            type="button"
+          >
+            Guardar transacción
+          </button>
+
+
         </div>
+
+
+
+        <!-- PÉRDIDAS -->
 
         <section class="loss-panel">
+
+
           <div>
-            <h3>Pérdidas del día</h3>
-            <p class="muted">Usa esto para roturas, invitaciones o producto perdido.</p>
+
+            <h3>
+              Pérdidas del día
+            </h3>
+
+
+            <p class="muted">
+              Usa esto para roturas,
+              invitaciones o producto perdido.
+            </p>
+
           </div>
-          <div id="lossRows" class="table-list"></div>
+
+
+          <div
+            id="lossRows"
+            class="table-list"
+          ></div>
+
+
           <div class="actions-row">
-            <span id="saveStatus" class="status"></span>
-            <button id="saveLossBtn" class="secondary" type="button">Guardar pérdidas</button>
+
+
+            <span
+              id="saveStatus"
+              class="status"
+            ></span>
+
+
+            <button
+              id="saveLossBtn"
+              class="secondary"
+              type="button"
+            >
+              Guardar pérdidas
+            </button>
+
+
           </div>
+
+
         </section>
+
+
+
+        <!-- VENTAS GUARDADAS -->
 
         <section>
-          <h3>Ventas guardadas hoy</h3>
-          <div id="transactionRows" class="table-list"></div>
+
+          <h3>
+            Ventas guardadas hoy
+          </h3>
+
+
+          <div
+            id="transactionRows"
+            class="table-list"
+          ></div>
+
         </section>
+
+
       </section>
 
-      <section id="cashView" class="view hidden">
+
+
+      <!-- ===================================================
+           CAJA
+           =================================================== -->
+
+      <section
+        id="cashView"
+        class="view hidden"
+      >
+
+
         <div class="section-head">
+
+
           <div>
-            <h2>Caja del día</h2>
-            <p class="muted">Registra los tres conteos y revisa la diferencia entre ellos.</p>
+
+            <h2>
+              Caja del día
+            </h2>
+
+
+            <p class="muted">
+              Registra los tres conteos y revisa
+              la diferencia entre ellos.
+            </p>
+
           </div>
+
+
         </div>
+
+
         <div class="cash-grid">
-          <article class="cash-card" data-cash-count="morning">
+
+
+          <article
+            class="cash-card"
+            data-cash-count="morning"
+          >
+
             <header>
-              <h3>Entrada de turno</h3>
-              <strong data-cash-total>0,00 €</strong>
+
+              <h3>
+                Entrada de turno
+              </h3>
+
+              <strong data-cash-total>
+                0,00 €
+              </strong>
+
             </header>
-            <div class="cash-denominations" data-cash-denominations></div>
+
+
+            <div
+              class="cash-denominations"
+              data-cash-denominations
+            ></div>
+
           </article>
-          <article class="cash-card" data-cash-count="start">
+
+
+
+          <article
+            class="cash-card"
+            data-cash-count="start"
+          >
+
             <header>
-              <h3>Inicio barra 19:00</h3>
-              <strong data-cash-total>0,00 €</strong>
+
+              <h3>
+                Inicio barra 19:00
+              </h3>
+
+              <strong data-cash-total>
+                0,00 €
+              </strong>
+
             </header>
-            <div class="cash-denominations" data-cash-denominations></div>
+
+
+            <div
+              class="cash-denominations"
+              data-cash-denominations
+            ></div>
+
           </article>
-          <article class="cash-card" data-cash-count="end">
+
+
+
+          <article
+            class="cash-card"
+            data-cash-count="end"
+          >
+
             <header>
-              <h3>Final barra</h3>
-              <strong data-cash-total>0,00 €</strong>
+
+              <h3>
+                Final barra
+              </h3>
+
+              <strong data-cash-total>
+                0,00 €
+              </strong>
+
             </header>
-            <div class="cash-denominations" data-cash-denominations></div>
+
+
+            <div
+              class="cash-denominations"
+              data-cash-denominations
+            ></div>
+
           </article>
+
+
         </div>
-        <section class="summary-grid compact" aria-label="Diferencias de caja">
+
+
+
+        <section
+          class="summary-grid compact"
+          aria-label="Diferencias de caja"
+        >
+
+
           <article>
-            <span>Inicio - Entrada</span>
-            <strong id="cashDiffStart">0,00 €</strong>
+
+            <span>
+              Inicio - Entrada
+            </span>
+
+            <strong id="cashDiffStart">
+              0,00 €
+            </strong>
+
           </article>
+
+
           <article>
-            <span>Final - Inicio</span>
-            <strong id="cashDiffEnd">0,00 €</strong>
+
+            <span>
+              Final - Inicio
+            </span>
+
+            <strong id="cashDiffEnd">
+              0,00 €
+            </strong>
+
           </article>
+
+
           <article>
-            <span>Final - Entrada</span>
-            <strong id="cashDiffDay">0,00 €</strong>
+
+            <span>
+              Final - Entrada
+            </span>
+
+            <strong id="cashDiffDay">
+              0,00 €
+            </strong>
+
           </article>
+
+
         </section>
+
+
         <div class="actions-row">
-          <span id="cashStatus" class="status"></span>
-          <button id="saveCashBtn" class="primary" type="button">Guardar caja</button>
+
+
+          <span
+            id="cashStatus"
+            class="status"
+          ></span>
+
+
+          <button
+            id="saveCashBtn"
+            class="primary"
+            type="button"
+          >
+            Guardar caja
+          </button>
+
+
         </div>
+
+
       </section>
 
-      <section id="inventoryView" class="view hidden">
+
+
+      <!-- ===================================================
+           INVENTARIO
+           =================================================== -->
+
+      <section
+        id="inventoryView"
+        class="view hidden"
+      >
+
+
         <div class="section-head">
+
+
           <div>
-            <h2>Inventario</h2>
-            <p class="muted">Añade bebidas y ajusta stock o precio.</p>
+
+            <h2>
+              Inventario
+            </h2>
+
+
+            <p class="muted">
+              Añade bebidas y ajusta stock o precio.
+            </p>
+
           </div>
-          <button id="addProductBtn" class="secondary admin-only" type="button">Añadir producto</button>
+
+
+          <button
+            id="addProductBtn"
+            class="secondary admin-only"
+            type="button"
+          >
+            Añadir producto
+          </button>
+
+
         </div>
-        <div id="inventoryRows" class="table-list"></div>
+
+
+        <div
+          id="inventoryRows"
+          class="table-list"
+        ></div>
+
+
       </section>
 
-      <section id="notesView" class="view hidden">
+
+
+      <!-- ===================================================
+           NOTAS
+           =================================================== -->
+
+      <section
+        id="notesView"
+        class="view hidden"
+      >
+
+
         <div class="section-head">
+
+
           <div>
-            <h2>Notas de turno</h2>
-            <p class="muted">Registra avisos para el siguiente turno.</p>
+
+            <h2>
+              Notas de turno
+            </h2>
+
+
+            <p class="muted">
+              Registra avisos para el siguiente turno.
+            </p>
+
           </div>
+
+
         </div>
-        <form id="noteForm" class="note-form">
+
+
+        <form
+          id="noteForm"
+          class="note-form"
+        >
+
+
           <label>
+
             Concepto
-            <input id="noteConcept" required placeholder="Ej. Pedido pendiente">
+
+            <input
+              id="noteConcept"
+              required
+              placeholder="Ej. Pedido pendiente"
+            >
+
           </label>
+
+
           <label>
+
             Proveedor
-            <input id="noteProvider" required placeholder="Ej. Bebidas Norte">
+
+            <input
+              id="noteProvider"
+              required
+              placeholder="Ej. Bebidas Norte"
+            >
+
           </label>
+
+
           <label>
+
             Importe €
-            <input id="noteAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
+
+            <input
+              id="noteAmount"
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="0,00"
+            >
+
           </label>
+
+
           <label>
+
             Imagen
+
             <input
               id="noteImage"
               type="file"
               accept="image/*"
             >
+
           </label>
-          <button class="primary" type="submit">Guardar nota</button>
+
+
+          <button
+            class="primary"
+            type="submit"
+          >
+            Guardar nota
+          </button>
+
+
         </form>
-        <div id="noteRows" class="table-list"></div>
+
+
+        <div
+          id="noteRows"
+          class="table-list"
+        ></div>
+
+
       </section>
 
-      <section id="ranchoView" class="view hidden">
-        <div class="section-head">
+
+
+      <!-- ===================================================
+           RANCHO
+           =================================================== -->
+
+      <section
+        id="ranchoView"
+        class="view hidden"
+      >
+
+
+        <div class="rancho-header">
+
+
           <div>
-            <h2>El Rancho</h2>
-            <p class="muted">Cuadrante semanal de sábado a sábado, con comidas y cenas asociadas.</p>
+
+            <p class="eyebrow">
+              Organización del personal
+            </p>
+
+
+            <h2>
+              🍽️ El Rancho
+            </h2>
+
+
+            <p class="muted">
+              Turnos, comidas y cenas del personal.
+            </p>
+
           </div>
+
+
         </div>
 
-        <section class="people-panel">
-          <div>
-            <h3>Personas disponibles</h3>
-            <p class="muted">Estos nombres aparecen en los seleccionables del cuadrante y de comidas/cenas.</p>
+
+
+        <!-- DÍAS -->
+
+        <section class="rancho-day-selector">
+
+
+          <button
+            id="ranchoPrevDay"
+            class="rancho-day-arrow"
+            type="button"
+            aria-label="Día anterior"
+          >
+            ‹
+          </button>
+
+
+          <div class="rancho-current-day">
+
+
+            <span id="ranchoCurrentDayName">
+              Jueves
+            </span>
+
+
+            <strong id="ranchoCurrentDayDate">
+              13 AGO
+            </strong>
+
+
           </div>
-          <form id="personForm" class="inline-form">
-            <input id="personName" placeholder="Nombre de persona">
-            <button class="secondary" type="submit">Añadir persona</button>
+
+
+          <button
+            id="ranchoNextDay"
+            class="rancho-day-arrow"
+            type="button"
+            aria-label="Día siguiente"
+          >
+            ›
+          </button>
+
+
+        </section>
+
+
+
+        <div
+          id="ranchoWeekDays"
+          class="rancho-week-days"
+        ></div>
+
+
+
+        <!-- PERSONAS -->
+
+        <section class="rancho-panel">
+
+
+          <div class="rancho-panel-header">
+
+
+            <div>
+
+              <h3>
+                👥 Personas
+              </h3>
+
+
+              <p class="muted">
+                Personas disponibles para asignar.
+              </p>
+
+            </div>
+
+
+            <button
+              id="ranchoAddPersonBtn"
+              class="secondary"
+              type="button"
+            >
+              + Añadir
+            </button>
+
+
+          </div>
+
+
+
+          <form
+            id="personForm"
+            class="rancho-add-person-form hidden"
+          >
+
+
+            <input
+              id="personName"
+              type="text"
+              placeholder="Nombre de la persona"
+              autocomplete="off"
+            >
+
+
+            <button
+              class="primary"
+              type="submit"
+            >
+              Añadir
+            </button>
+
+
+            <button
+              id="ranchoCancelPersonBtn"
+              class="ghost"
+              type="button"
+            >
+              Cancelar
+            </button>
+
+
           </form>
-          <div id="peopleList" class="chip-list"></div>
+
+
+
+          <div
+            id="peopleList"
+            class="rancho-people-list"
+          ></div>
+
+
         </section>
 
-        <section>
-          <h3>Cuadrante</h3>
-          <div id="ranchoScheduleRows" class="rancho-week"></div>
+
+
+        <!-- TURNOS -->
+
+        <section class="rancho-panel">
+
+
+          <div class="rancho-panel-header">
+
+
+            <div>
+
+              <h3>
+                👥 Turnos
+              </h3>
+
+
+              <p class="muted">
+                Personal asignado para este día.
+              </p>
+
+            </div>
+
+
+          </div>
+
+
+          <div
+            id="ranchoScheduleRows"
+            class="rancho-schedule"
+          ></div>
+
+
         </section>
 
-        <section>
-          <h3>Comidas y cenas</h3>
-          <div id="ranchoMealRows" class="rancho-week"></div>
+
+
+        <!-- COMIDAS -->
+
+        <section class="rancho-panel">
+
+
+          <div class="rancho-panel-header">
+
+
+            <div>
+
+              <h3>
+                🍽️ Comidas
+              </h3>
+
+
+              <p class="muted">
+                Control de comida y cena.
+              </p>
+
+            </div>
+
+
+          </div>
+
+
+          <div
+            id="ranchoMealRows"
+            class="rancho-meals"
+          ></div>
+
+
         </section>
+
+
       </section>
 
-      <section id="reportsView" class="view hidden">
-        <div class="section-head reports-header">
+
+
+      <!-- ===================================================
+           INFORMES
+           =================================================== -->
+
+      <section
+        id="reportsView"
+        class="view hidden"
+      >
+
+
+        <div
+          class="section-head reports-header"
+        >
+
+
           <div>
-            <p class="eyebrow">Control de caja</p>
-            <h2>Informes</h2>
-            <p class="muted">
-              Consulta todo lo ocurrido en una caja concreta.
+
+            <p class="eyebrow">
+              Control de caja
             </p>
+
+
+            <h2>
+              Informes
+            </h2>
+
+
+            <p class="muted">
+              Consulta todo lo ocurrido
+              en una caja concreta.
+            </p>
+
           </div>
 
-          <button id="exportBtn" class="primary" type="button">
+
+          <button
+            id="exportBtn"
+            class="primary"
+            type="button"
+          >
             📊 Exportar Excel
           </button>
+
+
         </div>
 
+
+
         <section class="report-selector">
+
+
           <label class="date-field">
+
             Día de caja
-            <input id="reportDate" type="date">
+
+            <input
+              id="reportDate"
+              type="date"
+            >
+
           </label>
+
 
           <button
             id="loadCashReportBtn"
@@ -620,59 +1989,263 @@
           >
             🔎 Consultar caja
           </button>
+
+
         </section>
 
-        <div id="cashReport" class="cash-report">
+
+
+        <div
+          id="cashReport"
+          class="cash-report"
+        >
+
+
           <div class="report-placeholder">
-            <div class="report-placeholder-icon">💰</div>
-            <h3>Selecciona un día</h3>
+
+
+            <div class="report-placeholder-icon">
+              💰
+            </div>
+
+
+            <h3>
+              Selecciona un día
+            </h3>
+
+
             <p class="muted">
-              Selecciona una fecha para consultar la actividad de esa caja.
+              Selecciona una fecha para consultar
+              la actividad de esa caja.
             </p>
+
+
           </div>
+
+
         </div>
 
-        <!--
-          Se mantiene porque app.js lo utiliza para el resumen semanal
-          por producto. Visualmente se muestra como tarjetas.
-        -->
-        <div id="reportRows" class="report-product-summary"></div>
+
+
+        <div
+          id="reportRows"
+          class="report-product-summary"
+        ></div>
+
+
       </section>
+
+
+    </section>
+
 
   </main>
 
+
+
+  <!-- =====================================================
+       TEMPLATE PRODUCTOS
+       ===================================================== -->
+
   <template id="productStepperTemplate">
-    <article class="row-card product-stepper-row">
+
+
+    <article
+      class="row-card product-stepper-row"
+    >
+
+
       <div class="product-main">
+
+
         <strong data-name></strong>
+
+
         <span data-stock></span>
+
+
       </div>
-      <div class="stepper" aria-label="Cantidad">
-        <button data-minus type="button">-</button>
-        <output data-qty>0</output>
-        <button data-plus type="button">+</button>
+
+
+      <div
+        class="stepper"
+        aria-label="Cantidad"
+      >
+
+
+        <button
+          data-minus
+          type="button"
+        >
+          -
+        </button>
+
+
+        <output data-qty>
+          0
+        </output>
+
+
+        <button
+          data-plus
+          type="button"
+        >
+          +
+        </button>
+
+
       </div>
+
+
     </article>
+
+
   </template>
 
+
+
+  <!-- =====================================================
+       TEMPLATE INVENTARIO
+       ===================================================== -->
+
   <template id="inventoryRowTemplate">
-    <article class="row-card inventory-row">
-      <label>
-        Producto
-        <input data-name>
-      </label>
-      <label>
-        Stock
-        <input data-stock type="number" min="0" step="1" inputmode="numeric">
-      </label>
-      <label>
+
+
+    <article
+      class="row-card inventory-row"
+    >
+
+
+      <div class="inventory-product">
+
+
+        <label>
+
+          Producto
+
+          <input
+            data-name
+          >
+
+        </label>
+
+
+      </div>
+
+
+
+      <div class="inventory-stock">
+
+
+        <span class="inventory-label">
+          Stock
+        </span>
+
+
+        <div class="inventory-stepper">
+
+
+          <button
+            type="button"
+            data-stock-minus
+            class="inventory-stepper-btn"
+            aria-label="Disminuir stock"
+          >
+            −
+          </button>
+
+
+          <input
+            data-stock
+            type="number"
+            min="0"
+            step="1"
+            inputmode="numeric"
+            aria-label="Stock"
+          >
+
+
+          <button
+            type="button"
+            data-stock-plus
+            class="inventory-stepper-btn"
+            aria-label="Aumentar stock"
+          >
+            +
+          </button>
+
+
+        </div>
+
+
+      </div>
+
+
+
+      <label class="inventory-price">
+
         Precio €
-        <input data-price type="number" min="0" step="0.01" inputmode="decimal">
+
+        <input
+          data-price
+          type="number"
+          min="0"
+          step="0.01"
+          inputmode="decimal"
+        >
+
       </label>
-      <button data-remove class="danger admin-only" type="button">Eliminar</button>
+
+
+
+      <div class="inventory-actions">
+
+
+        <button
+          data-save-product
+          class="secondary"
+          type="button"
+        >
+          Guardar
+        </button>
+
+
+        <button
+          data-remove
+          class="danger admin-only"
+          type="button"
+        >
+          Eliminar
+        </button>
+
+
+      </div>
+
+
     </article>
-  </template> 
+
+
+  </template>
+
+
+
+  <!-- =====================================================
+       SUPABASE
+       ===================================================== -->
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script type="module" src="js/app.js"></script>
+
+
+  <!-- =====================================================
+       APLICACIÓN
+       ===================================================== -->
+
+  <script
+    type="module"
+    src="js/app.js"
+  ></script>
+
+
 </body>
+
 </html>

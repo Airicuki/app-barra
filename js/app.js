@@ -3,8 +3,8 @@ import * as appState from "./state/state.js";
 import { els } from "./utils/dom.js";
 
 import {
-    operationalDate
-  } from "./utils/format.js";
+  operationalDate
+} from "./utils/format.js";
 
 import {
   initVentas,
@@ -12,10 +12,10 @@ import {
 } from "./modules/ventas.js";
 
 import {
-    initCaja,
-    renderCaja,
-    loadCashFromSupabase
-  } from "./modules/caja.js";
+  initCaja,
+  renderCaja,
+  loadCashFromSupabase
+} from "./modules/caja.js";
 
 import {
   showDashboard,
@@ -33,19 +33,31 @@ import {
 } from "./modules/inventario.js";
 
 import {
-    initPerdidas,
-    renderPerdidas
-  } from "./modules/perdidas.js";
+  initPerdidas,
+  renderPerdidas
+} from "./modules/perdidas.js";
 
 import {
-    initInformes
+  initInformes
 } from "./modules/informes.js";
 
 import {
-    initNotas,
-    renderNotas,
-    loadNotas
+  initNotas,
+  renderNotas,
+  loadNotas
 } from "./modules/notas.js";
+
+import {
+  initRancho,
+  renderRancho,
+  loadRancho
+} from "./modules/rancho.js";
+
+import {
+  initDashboard,
+  renderDashboard
+} from "./modules/dashboard.js";
+
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -98,7 +110,11 @@ document.addEventListener(
             tab.dataset.view;
 
           if (viewId) {
-            showView(viewId);
+
+            showView(
+              viewId
+            );
+
           }
 
         }
@@ -120,10 +136,19 @@ document.addEventListener(
 
     }
 
+
     if (els.inventoryRows) {
 
+      // Enter sobre una fila
       els.inventoryRows.addEventListener(
         "keydown",
+        updateInventory
+      );
+
+
+      // Botones + / - / Guardar
+      els.inventoryRows.addEventListener(
+        "click",
         updateInventory
       );
 
@@ -131,24 +156,36 @@ document.addEventListener(
 
 
     // =====================================================
-    // VENTAS
+    // FECHA OPERATIVA
     // =====================================================
-
 
     if (els.entryDate) {
-        els.entryDate.value =
-          operationalDate();
-    }
 
-    initVentas();
-    initPerdidas();
-    initCaja();
-    initInformes();
-    initNotas();
+      els.entryDate.value =
+        operationalDate();
+
+    }
 
 
     // =====================================================
-    // SESIÓN SUPABASE
+    // INICIALIZAR MÓDULOS
+    // =====================================================
+
+    await initVentas();
+
+    initPerdidas();
+
+    initCaja();
+
+    initInformes();
+
+    initNotas();
+
+    initRancho();
+
+
+    // =====================================================
+    // COMPROBAR SESIÓN SUPABASE
     // =====================================================
 
     const hasSession =
@@ -156,7 +193,7 @@ document.addEventListener(
 
 
     // =====================================================
-    // COMPROBAR SI YA EXISTE SESIÓN
+    // SI HAY SESIÓN
     // =====================================================
 
     if (hasSession) {
@@ -168,16 +205,30 @@ document.addEventListener(
 
 
       // ---------------------------------------------------
-      // Cargar inventario
+      // INICIALIZAR DASHBOARD
+      // ---------------------------------------------------
+      // IMPORTANTE:
+      // Se inicializa DESPUÉS de comprobar la sesión.
+      // ---------------------------------------------------
+
+      await initDashboard();
+
+
+      // ---------------------------------------------------
+      // CARGAR DATOS
       // ---------------------------------------------------
 
       await loadProductsFromSupabase();
 
       await loadCashFromSupabase();
+
       await loadNotas();
 
+      await loadRancho();
+
+
       // ---------------------------------------------------
-      // Render inicial
+      // RENDERIZAR
       // ---------------------------------------------------
 
       renderInventory();
@@ -190,9 +241,18 @@ document.addEventListener(
 
       renderNotas();
 
+      renderRancho();
+
 
       // ---------------------------------------------------
-      // Mostrar dashboard
+      // DASHBOARD
+      // ---------------------------------------------------
+
+      await renderDashboard();
+
+
+      // ---------------------------------------------------
+      // MOSTRAR DASHBOARD
       // ---------------------------------------------------
 
       await showDashboard();

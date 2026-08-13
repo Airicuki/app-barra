@@ -55,6 +55,7 @@ export const ranchoRoles = [
 ];
 
 export const defaultState = {
+  barProducts: [],
   products: [
     {
       id: crypto.randomUUID(),
