@@ -41,6 +41,31 @@ const ranchoRoles = [
 
 export function initRancho() {
 
+    if (els.ranchoDate) {
+
+      els.ranchoDate.value =
+        els.ranchoDate.value ||
+        els.entryDate?.value ||
+        formatDate(new Date());
+
+
+      els.ranchoDate.addEventListener(
+        "change",
+        async () => {
+
+          const loaded =
+            await loadRancho();
+
+
+          if (loaded) {
+            renderRancho();
+          }
+
+        }
+      );
+
+    }
+
     // ==========================================================
     // AÑADIR PERSONA
     // ==========================================================
@@ -247,6 +272,7 @@ function getSelectedRanchoDay() {
 export async function loadRancho() {
 
   const date =
+    els.ranchoDate?.value ||
     els.entryDate?.value;
 
 
@@ -550,7 +576,7 @@ export async function loadRancho() {
 
                     signed: true,
 
-                    paid: false,
+                    paid: true,
 
                     personaId:
                       person.id
@@ -1724,6 +1750,51 @@ async function updateRanchoSchedule(
     console.log(
       "✅ Turno guardado en Supabase"
     );
+
+
+    // Al asignar a alguien a un turno, se le añade a comida y
+    // cena con los dos controles marcados automáticamente.
+    if (select.value) {
+
+      const mealResults =
+        await Promise.all(
+          [
+            "comida",
+            "cena"
+          ].map(
+            (tipo) =>
+              saveRanchoComida({
+                fecha: scheduleDate,
+                tipo,
+                personaId: select.value,
+                apuntado: true,
+                pagado: true
+              })
+          )
+        );
+
+
+      const mealError =
+        mealResults.find(
+          (result) => result.error
+        )?.error;
+
+
+      if (mealError) {
+
+        console.error(
+          "❌ Error actualizando comidas del turno:",
+          mealError
+        );
+
+
+        alert(
+          "El turno se guardó, pero no se pudieron actualizar sus comidas."
+        );
+
+      }
+
+    }
 
 
     await loadRancho();

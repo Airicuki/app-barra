@@ -21,11 +21,38 @@ import {
   // INICIALIZACIÓN
   // ============================================================
   
-  export async function initVentas() {
+export async function initVentas() {
   
     console.log(
       "🍺 Inicializando módulo de ventas de barra..."
     );
+
+
+    const saleSummary =
+      els.saveTransactionBtn?.closest(
+        ".actions-row"
+      );
+
+
+    if (
+      saleSummary &&
+      els.dailyRows
+    ) {
+
+      els.dailyRows.parentElement?.insertBefore(
+        saleSummary,
+        els.dailyRows
+      );
+
+    }
+
+
+    if (els.saveTransactionBtn) {
+
+      els.saveTransactionBtn.textContent =
+        "Guardar venta";
+
+    }
   
   
     // ----------------------------------------------------------
@@ -330,6 +357,14 @@ import {
   
             row.dataset.mode =
               "sale";
+
+
+            row.classList.toggle(
+              "is-selected",
+              Boolean(
+                cart[product.id]
+              )
+            );
   
   
             // --------------------------------------------------
@@ -507,6 +542,14 @@ import {
   
           row.dataset.mode =
             "sale";
+
+
+          row.classList.toggle(
+            "is-selected",
+            Boolean(
+              cart[product.id]
+            )
+          );
   
   
           const name =

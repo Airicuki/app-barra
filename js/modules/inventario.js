@@ -19,6 +19,10 @@ import {
 } from "../services/productos.service.js";
 
 
+let activeInventoryCategory =
+  null;
+
+
 // ============================================================
 // CARGAR INVENTARIO DESDE SUPABASE
 // ============================================================
@@ -67,7 +71,10 @@ export async function loadProductsFromSupabase() {
 // MOSTRAR INVENTARIO
 // ============================================================
 
-export function renderInventory() {
+export function renderInventory(
+  searchTerm =
+    els.inventorySearch?.value || ""
+) {
 
   const template =
     document.querySelector(
@@ -99,89 +106,327 @@ export function renderInventory() {
     );
 
 
-  state.products.forEach(
-    (product) => {
-
-      const row =
-        template.content
-          .firstElementChild
-          .cloneNode(true);
+  const query =
+    searchTerm.trim().toLocaleLowerCase(
+      "es"
+    );
 
 
-      row.dataset.productId =
-        product.id;
+  const products =
+    state.products.filter(
+      (product) =>
+        product.name
+          .toLocaleLowerCase("es")
+          .includes(query)
+    );
 
 
-      // --------------------------------------------------------
-      // CAMPOS
-      // --------------------------------------------------------
+  const categories = [
+    {
+      id: "refrescos",
+      label: "Refrescos",
+      icon: "🥤"
+    },
+    {
+      id: "cervezas",
+      label: "Cervezas",
+      icon: "🍺"
+    },
+    {
+      id: "aguas",
+      label: "Aguas",
+      icon: "💧"
+    },
+    {
+      id: "copas",
+      label: "Copas y licores",
+      icon: "🥃"
+    },
+    {
+      id: "otros",
+      label: "Otros productos",
+      icon: "📦"
+    }
+  ];
 
-      const nameInput =
-        row.querySelector(
-          "[data-name]"
+
+  categories.forEach(
+    (category) => {
+
+      const categoryProducts =
+        products.filter(
+          (product) =>
+            getInventoryCategory(
+              product.name
+            ) === category.id
         );
 
 
-      const stockInput =
-        row.querySelector(
-          "[data-stock]"
+      if (!categoryProducts.length) {
+        return;
+      }
+
+
+      const section =
+        document.createElement("section");
+
+
+      section.className =
+        "inventory-category";
+
+
+      section.dataset.category =
+        category.id;
+
+
+      const isOpen =
+        Boolean(query) ||
+        activeInventoryCategory ===
+          category.id;
+
+
+      section.classList.toggle(
+        "is-open",
+        isOpen
+      );
+
+
+      section.classList.toggle(
+        "is-searching",
+        Boolean(query)
+      );
+
+
+      const totalStock =
+        categoryProducts.reduce(
+          (total, product) =>
+            total + Number(product.stock || 0),
+          0
         );
 
 
-      const priceInput =
-        row.querySelector(
-          "[data-price]"
-        );
+      const toggle =
+        document.createElement("button");
 
 
-      if (nameInput) {
-
-        nameInput.value =
-          product.name;
-
-      }
-
-
-      if (stockInput) {
-
-        stockInput.value =
-          product.stock;
-
-      }
+      toggle.type = "button";
+      toggle.className =
+        "inventory-category-toggle";
+      toggle.setAttribute(
+        "aria-expanded",
+        String(isOpen)
+      );
 
 
-      if (priceInput) {
+      toggle.innerHTML = `
+        <span class="inventory-category-title">
+          ${category.icon} ${category.label}
+        </span>
+        <span class="inventory-category-summary">
+          ${categoryProducts.length} productos ·
+          <strong class="${stockStatus(totalStock)}">
+            ${totalStock} uds.
+          </strong>
+        </span>
+        <span class="inventory-category-arrow">›</span>
+      `;
 
-        priceInput.value =
-          product.price;
 
-      }
+      toggle.addEventListener(
+        "click",
+        () => {
+
+          const willOpen =
+            activeInventoryCategory !==
+            category.id;
 
 
-      // --------------------------------------------------------
-      // PERMISOS
-      // --------------------------------------------------------
+          activeInventoryCategory =
+            willOpen
+              ? category.id
+              : null;
 
-      row
-        .querySelectorAll(
-          "input, button"
+
+          els.inventoryRows
+            .querySelectorAll(
+              ".inventory-category"
+            )
+            .forEach(
+              (item) => {
+
+                const isActive =
+                  willOpen &&
+                  item === section;
+
+
+                item.classList.toggle(
+                  "is-open",
+                  isActive
+                );
+
+
+                item
+                  .querySelector(
+                    ".inventory-category-toggle"
+                  )
+                  ?.setAttribute(
+                    "aria-expanded",
+                    String(isActive)
+                  );
+
+              }
+            );
+
+        }
+      );
+
+
+      const rows =
+        document.createElement("div");
+
+
+      rows.className =
+        "inventory-category-products";
+
+
+      categoryProducts
+        .sort(
+          (first, second) =>
+            first.name.localeCompare(
+              second.name,
+              "es"
+            )
         )
         .forEach(
-          (control) => {
+          (product) => {
 
-            control.disabled =
-              !canEdit;
+            rows.append(
+              createInventoryRow(
+                template,
+                product,
+                canEdit
+              )
+            );
 
           }
         );
 
 
-      els.inventoryRows.append(
-        row
+      section.append(
+        toggle,
+        rows
       );
+
+
+      els.inventoryRows.append(section);
 
     }
   );
+
+
+  if (!products.length) {
+
+    const empty =
+      document.createElement("p");
+
+
+    empty.className = "muted";
+    empty.textContent =
+      "No hay productos que coincidan con la búsqueda.";
+
+
+    els.inventoryRows.append(empty);
+
+  }
+
+}
+
+
+function createInventoryRow(
+  template,
+  product,
+  canEdit
+) {
+
+  const row =
+    template.content
+      .firstElementChild
+      .cloneNode(true);
+
+
+  row.dataset.productId = product.id;
+
+
+  row.querySelector("[data-name]").value =
+    product.name;
+
+
+  row.querySelector("[data-stock]").value =
+    product.stock;
+
+
+  row.querySelector("[data-price]").value =
+    product.price;
+
+
+  row
+    .querySelectorAll("input, button")
+    .forEach(
+      (control) => {
+        control.disabled = !canEdit;
+      }
+    );
+
+
+  return row;
+
+}
+
+
+function getInventoryCategory(name) {
+
+  const value =
+    name.toLocaleLowerCase("es");
+
+
+  if (/agua/.test(value)) {
+    return "aguas";
+  }
+
+
+  if (/cerveza|caña|birra/.test(value)) {
+    return "cervezas";
+  }
+
+
+  if (/coca|cola|fanta|nestea|refresco|zumo|red bull|monster/.test(value)) {
+    return "refrescos";
+  }
+
+
+  if (/ron|ginebra|whisky|vodka|licor|vino|copa|tónica/.test(value)) {
+    return "copas";
+  }
+
+
+  return "otros";
+
+}
+
+
+function stockStatus(stock) {
+
+  if (stock <= 5) {
+    return "stock-critical";
+  }
+
+
+  if (stock <= 20) {
+    return "stock-low";
+  }
+
+
+  return "stock-ok";
 
 }
 

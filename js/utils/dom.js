@@ -24,12 +24,15 @@ export const els = {
     lossRows: document.querySelector("#lossRows"),
     transactionRows: document.querySelector("#transactionRows"),
     inventoryRows: document.querySelector("#inventoryRows"),
+    inventorySearch: document.querySelector("#inventorySearch"),
     reportRows: document.querySelector("#reportRows"),
   
     noteForm: document.querySelector("#noteForm"),
     noteConcept: document.querySelector("#noteConcept"),
     noteProvider: document.querySelector("#noteProvider"),
     noteAmount: document.querySelector("#noteAmount"),
+    noteImage: document.querySelector("#noteImage"),
+    noteDate: document.querySelector("#noteDate"),
     noteRows: document.querySelector("#noteRows"),
   
     personForm: document.querySelector("#personForm"),
@@ -41,6 +44,8 @@ export const els = {
   
     ranchoMealRows:
       document.querySelector("#ranchoMealRows"),
+
+    ranchoDate: document.querySelector("#ranchoDate"),
   
     saveTransactionBtn:
       document.querySelector("#saveTransactionBtn"),

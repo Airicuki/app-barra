@@ -1,1071 +1,1177 @@
-import {
-    state,
-    session,
-    saveState
-  } from "../state/state.js";
-  
-  import {
-    els
-  } from "../utils/dom.js";
-  
-  import {
-    formatMoney
-  } from "../utils/format.js";
-  
-  import {
-    getNotas,
-    createNota,
-    updateNotaLeida,
-    deleteNota as deleteNotaService
-  } from "../services/notas.service.js";
-  
-  import {
-    uploadNoteImage
-  } from "../services/storage.service.js";
-  
-  
-  // ============================================================
-  // INICIALIZACIÓN
-  // ============================================================
-  
-  export function initNotas() {
+import { db } from "../config/supabase.js";
 
-    if (els.noteForm) {
-      els.noteForm.addEventListener(
-        "submit",
-        saveNote
-      );
-    }
-  
-    if (els.noteRows) {
-  
-      els.noteRows.addEventListener(
-        "change",
-        updateNoteRead
-      );
-  
-      els.noteRows.addEventListener(
-        "click",
-        deleteNote
-      );
-  
-    }
-  
-    if (els.entryDate) {
-  
-      els.entryDate.addEventListener(
-        "change",
-        async () => {
-  
-          await loadNotas();
-  
-          renderNotas();
-  
-        }
-      );
-  
-    }
-  
+import * as appState from "../state/state.js";
+
+import {
+  state,
+  saveState
+} from "../state/state.js";
+
+import { els } from "../utils/dom.js";
+
+
+// ============================================================
+// INICIALIZAR
+// ============================================================
+
+export function initNotas() {
+
+  console.log(
+    "📝 Inicializando módulo de notas..."
+  );
+
+
+  if (els.noteForm) {
+
+    els.noteForm.addEventListener(
+      "submit",
+      addNote
+    );
+
   }
-  
-  
-  // ============================================================
-  // CARGAR NOTAS
-  // ============================================================
-  
-  export async function loadNotas(
-    date = els.entryDate.value
-  ) {
-  
-    if (!date) {
-      return false;
-    }
-  
-  
-    try {
-  
-      const {
-        data,
-        error
-      } =
-        await getNotas(date);
-  
-  
-      if (error) {
-  
-        console.error(
-          "❌ Error cargando notas:",
-          error
-        );
-  
-        return false;
+
+
+  if (els.noteDate) {
+
+    els.noteDate.value =
+      els.noteDate.value ||
+      els.entryDate?.value ||
+      getCurrentNoteDate();
+
+
+    els.noteDate.addEventListener(
+      "change",
+      async () => {
+
+        await loadNotas();
+        renderNotas();
+
       }
-  
-  
-      const rows =
-        data || [];
-  
-  
-      state.notes[date] =
-        rows.map(
-          (note) => ({
-            id: note.id,
-            concept:
-              note.concepto,
-            provider:
-              note.proveedor,
-            amount:
-              Number(
-                note.importe || 0
-              ),
-            read:
-              Boolean(
-                note.leido
-              ),
-            savedBy:
-              note.usuario,
-            time:
-              note.hora,
-            imageUrl:
-              note.imagen_url || null
-          })
-        );
-  
-  
-      console.log(
-        "✅ Notas cargadas desde Supabase:",
-        state.notes[date]
-      );
-  
-  
-      return true;
-  
-    } catch (error) {
-  
-      console.error(
-        "❌ Error inesperado cargando notas:",
-        error
-      );
-  
-      return false;
-    }
-  
+    );
+
   }
-  
-  
-  // ============================================================
-  // RENDER NOTAS
-  // ============================================================
-  
-  export function renderNotas() {
-  
-    const date =
-      els.entryDate.value;
-  
-  
-    const rows =
-      state.notes[date] || [];
-  
-  
-    els.noteRows.replaceChildren();
-  
-  
-    if (!rows.length) {
-  
-      const empty =
+
+
+  if (els.noteRows) {
+
+    els.noteRows.addEventListener(
+      "change",
+      updateNoteRead
+    );
+
+
+    els.noteRows.addEventListener(
+      "click",
+      deleteNote
+    );
+
+
+    els.noteRows.addEventListener(
+      "click",
+      downloadNoteImage
+    );
+
+  }
+
+}
+
+
+// ============================================================
+// CARGAR NOTAS DESDE SUPABASE
+// ============================================================
+
+export async function loadNotas() {
+
+  if (!appState.session) {
+
+    console.warn(
+      "⚠️ No hay sesión para cargar notas."
+    );
+
+    return false;
+
+  }
+
+
+  const noteDate =
+    els.noteDate?.value ||
+    getCurrentNoteDate();
+
+
+  const {
+    data,
+    error
+  } = await db
+    .from("notas")
+    .select(
+      `
+      id,
+      concepto,
+      proveedor,
+      importe,
+      imagen_url,
+      leido,
+      fecha,
+      hora,
+      usuario
+      `
+    )
+    .eq(
+      "fecha",
+      noteDate
+    )
+    .order(
+      "fecha",
+      {
+        ascending: false
+      }
+    )
+    .order(
+      "hora",
+      {
+        ascending: false
+      }
+    );
+
+
+  if (error) {
+
+    console.error(
+      "❌ Error cargando notas:",
+      error
+    );
+
+    return false;
+
+  }
+
+
+  state.notes =
+    (data || []).map(
+      (note) => ({
+
+        id:
+          note.id,
+
+        concept:
+          note.concepto,
+
+        provider:
+          note.proveedor,
+
+        amount:
+          Number(
+            note.importe || 0
+          ),
+
+        imageUrl:
+          note.imagen_url,
+
+        read:
+          note.leido,
+
+        createdAt:
+          note.fecha && note.hora
+            ? `${note.fecha}T${note.hora}`
+            : note.fecha,
+
+        user:
+          note.usuario || "—"
+
+      })
+    );
+
+
+  console.log(
+    "📝 Notas cargadas:",
+    state.notes
+  );
+
+
+  return true;
+
+}
+
+
+// ============================================================
+// RENDERIZAR NOTAS
+// ============================================================
+
+export function renderNotas() {
+
+  if (!els.noteRows) {
+    return;
+  }
+
+
+  els.noteRows.replaceChildren();
+
+
+  const notes =
+    state.notes || [];
+
+
+  // ----------------------------------------------------------
+  // SIN NOTAS
+  // ----------------------------------------------------------
+
+  if (!notes.length) {
+
+    const empty =
+      document.createElement(
+        "article"
+      );
+
+
+    empty.className =
+      "row-card";
+
+
+    empty.textContent =
+      "No hay notas registradas.";
+
+
+    els.noteRows.append(
+      empty
+    );
+
+
+    return;
+
+  }
+
+
+  // ----------------------------------------------------------
+  // RENDER
+  // ----------------------------------------------------------
+
+  notes.forEach(
+    (note) => {
+
+      const card =
         document.createElement(
           "article"
         );
-  
-      empty.className =
-        "row-card";
-  
-      empty.textContent =
-        "Todavía no hay notas guardadas hoy.";
-  
-      els.noteRows.append(
-        empty
-      );
-  
-      return;
-    }
-  
-  
-    // Solo admin y jefe de barra
-    // pueden marcar o eliminar.
-    const canManageNotes =
-      session?.role === "admin" ||
-      session?.role === "jefeBarra";
-  
-  
-    rows
-      .slice()
-      .reverse()
-      .forEach(
-        (note) => {
-  
-          const card =
-            document.createElement(
-              "article"
-            );
-  
-          card.className =
-            "row-card note-row";
-  
-  
-          // ====================================================
-          // CONCEPTO
-          // ====================================================
-  
-          const concept =
-            document.createElement(
-              "div"
-            );
-  
-          const conceptStrong =
-            document.createElement(
-              "strong"
-            );
-  
-          conceptStrong.textContent =
-            note.concept;
-  
-          concept.append(
-            conceptStrong
-          );
-  
-  
-          // ====================================================
-          // PROVEEDOR
-          // ====================================================
-  
-          const provider =
-            document.createElement(
-              "div"
-            );
-  
-          provider.textContent =
-            note.provider;
-  
-  
-          // ====================================================
-          // IMPORTE
-          // ====================================================
-  
-          const amount =
-            document.createElement(
-              "div"
-            );
-  
-          const amountStrong =
-            document.createElement(
-              "strong"
-            );
-  
-          amountStrong.textContent =
-            formatMoney(
-              note.amount
-            );
-  
-          amount.append(
-            amountStrong
-          );
-  
-  
-          // ====================================================
-          // CHECK LEÍDO / PENDIENTE
-          // ====================================================
-  
-          const read =
-            document.createElement(
-              "label"
-            );
-  
-          read.className =
-            `checkbox-field ${
-              note.read
-                ? "note-read"
-                : "note-pending"
-            }`;
-  
-  
-          const checkbox =
-            document.createElement(
-              "input"
-            );
-  
-          checkbox.type =
-            "checkbox";
-  
-          checkbox.dataset.noteRead =
-            note.id;
-  
-          checkbox.checked =
-            Boolean(note.read);
-  
-          checkbox.disabled =
-            !canManageNotes;
-  
-  
-          const readText =
-            document.createElement(
-              "span"
-            );
-  
-          readText.textContent =
-            note.read
-              ? "Leído"
-              : "Pendiente";
-  
-  
-          read.append(
-            checkbox,
-            readText
-          );
-  
-  
-          // ====================================================
-          // INFORMACIÓN
-          // ====================================================
-  
-          const meta =
-            document.createElement(
-              "small"
-            );
-  
-          meta.className =
-            "note-meta";
-  
-          meta.textContent =
-            `Guardada a las ${
-              note.time || "—"
-            } por ${
-              note.savedBy || "—"
-            }`;
-  
-  
-          // ====================================================
-          // IMAGEN
-          // ====================================================
-  
-          let image = null;
-  
-  
-          if (note.imageUrl) {
-  
-            image =
-              document.createElement(
-                "div"
-              );
-  
-            image.className =
-              "note-image";
-  
-  
-            const link =
-              document.createElement(
-                "a"
-              );
-  
-            link.href =
-              note.imageUrl;
-  
-            link.target =
-              "_blank";
-  
-            link.rel =
-              "noopener noreferrer";
-  
-  
-            const img =
-              document.createElement(
-                "img"
-              );
-  
-            img.src =
-              note.imageUrl;
-  
-            img.alt =
-              "Imagen adjunta a la nota";
-  
-            img.loading =
-              "lazy";
-  
-  
-            link.append(
-              img
-            );
-  
-            image.append(
-              link
-            );
-  
-          }
-  
-  
-          // ====================================================
-          // BOTÓN ELIMINAR
-          // ====================================================
-  
-          let actions = null;
-  
-  
-          if (canManageNotes) {
-  
-            actions =
-              document.createElement(
-                "div"
-              );
-  
-            actions.className =
-              "note-actions";
-  
-  
-            const deleteButton =
-              document.createElement(
-                "button"
-              );
-  
-            deleteButton.type =
-              "button";
-  
-            deleteButton.className =
-              "danger note-delete-btn";
-  
-            deleteButton.dataset.noteDelete =
-              note.id;
-  
-            deleteButton.textContent =
-              "🗑️ Eliminar";
-  
-  
-            actions.append(
-              deleteButton
-            );
-  
-          }
-  
-  
-          // ====================================================
-          // CONSTRUIR TARJETA
-          // ====================================================
-  
-          card.append(
-            concept,
-            provider,
-            amount,
-            read,
-            meta
-          );
-  
-  
-          if (image) {
-            card.append(
-              image
-            );
-          }
-  
-  
-          if (actions) {
-            card.append(
-              actions
-            );
-          }
-  
-  
-          els.noteRows.append(
-            card
-          );
-  
-        }
-      );
-  
-  }
-  
-  
-  // ============================================================
-  // GUARDAR NOTA
-  // ============================================================
-  
-  async function saveNote(
-    event
-  ) {
-  
-    event.preventDefault();
-  
-  
-    const savedBy =
-      window.prompt(
-        "Nombre de la persona que guarda la nota"
-      );
-  
-  
-    if (
-      !savedBy ||
-      !savedBy.trim()
-    ) {
-      return;
-    }
-  
-  
-    const date =
-      els.entryDate.value;
-  
-  
-    const concept =
-      els.noteConcept.value.trim();
-  
-  
-    const provider =
-      els.noteProvider.value.trim();
-  
-  
-    const amount =
-      Math.max(
-        0,
-        Number(
-          els.noteAmount.value || 0
-        )
-      );
-  
-  
-    if (
-      !concept ||
-      !provider
-    ) {
-  
-      alert(
-        "Completa el concepto y el proveedor."
-      );
-  
-      return;
-    }
-  
-  
-    // ==========================================================
-    // IMAGEN
-    // ==========================================================
-  
-    const imageInput =
-      document.getElementById(
-        "noteImage"
-      );
-  
-  
-    const imageFile =
-      imageInput?.files?.[0] ||
-      null;
-  
-  
-    if (imageFile) {
-  
-      if (
-        !imageFile.type.startsWith(
-          "image/"
-        )
-      ) {
-  
-        alert(
-          "El archivo seleccionado no es una imagen."
+
+
+      card.className =
+        "row-card note-row";
+
+
+      card.dataset.noteId =
+        note.id;
+
+
+      // ======================================================
+      // CABECERA
+      // ======================================================
+
+      const header =
+        document.createElement(
+          "div"
         );
-  
-        return;
+
+
+      header.className =
+        "note-card-main";
+
+
+      const title =
+        document.createElement(
+          "strong"
+        );
+
+
+      title.textContent =
+        note.concept ||
+        "Sin concepto";
+
+
+      const amount =
+        document.createElement(
+          "strong"
+        );
+
+
+      amount.textContent =
+        `${Number(
+          note.amount || 0
+        ).toFixed(2)} €`;
+
+
+      header.append(
+        title,
+        amount
+      );
+
+
+      card.append(
+        header
+      );
+
+
+      // ======================================================
+      // PROVEEDOR
+      // ======================================================
+
+      if (note.provider) {
+
+        const provider =
+          document.createElement(
+            "p"
+          );
+
+
+        provider.className =
+          "note-card-provider";
+
+
+        provider.textContent =
+          `Proveedor: ${note.provider}`;
+
+
+        card.append(
+          provider
+        );
+
       }
-  
-  
-      if (
-        imageFile.size >
-        5 * 1024 * 1024
-      ) {
-  
-        alert(
-          "La imagen no puede superar los 5 MB."
-        );
-  
-        return;
-      }
-  
-    }
-  
-  
-    const now =
-      new Date();
-  
-  
-    const time =
-      now.toLocaleTimeString(
-        "es-ES",
-        {
-          hour: "2-digit",
-          minute: "2-digit"
-        }
-      );
-  
-  
-    const submitButton =
-      els.noteForm.querySelector(
-        'button[type="submit"]'
-      );
-  
-  
-    if (submitButton) {
-      submitButton.disabled =
-        true;
-    }
-  
-  
-    try {
-  
-      // ========================================================
-      // SUBIR IMAGEN
-      // ========================================================
-  
-      let imageUrl =
-        null;
-  
-  
-      if (imageFile) {
-  
-        const {
-          data: imageData,
-          error: imageError
-        } =
-          await uploadNoteImage(
-            imageFile,
-            date
+
+
+      // ======================================================
+      // IMAGEN
+      // ======================================================
+      //
+      // Ahora se muestra como una miniatura pensada para
+      // móvil.
+      //
+      // Al pulsarla se intenta descargar directamente.
+      //
+      // ======================================================
+
+      let image = null;
+
+
+      if (note.imageUrl) {
+
+        image =
+          document.createElement(
+            "div"
           );
-  
-  
-        if (imageError) {
-  
-          alert(
-            "No se ha podido subir la imagen."
+
+
+        image.className =
+          "note-image note-card-image";
+
+
+        const downloadButton =
+          document.createElement(
+            "button"
           );
-  
-          return;
-        }
-  
-  
-        imageUrl =
-          imageData?.publicUrl ||
-          null;
-  
-  
-        console.log(
-          "✅ Imagen subida:",
-          imageUrl
+
+
+        downloadButton.type =
+          "button";
+
+
+        downloadButton.className =
+          "note-image-download";
+
+
+        downloadButton.title =
+          "Pulsar para descargar la imagen";
+
+
+        downloadButton.setAttribute(
+          "aria-label",
+          "Descargar imagen adjunta"
         );
-  
+
+
+        downloadButton.dataset.noteImageDownload =
+          note.imageUrl;
+
+
+        const img =
+          document.createElement(
+            "img"
+          );
+
+
+        img.src =
+          note.imageUrl;
+
+
+        img.alt =
+          "Imagen adjunta a la nota";
+
+
+        img.loading =
+          "lazy";
+
+
+        downloadButton.append(
+          img
+        );
+
+
+        image.append(
+          downloadButton
+        );
+
+
+        card.append(
+          image
+        );
+
       }
-  
-  
-      // ========================================================
-      // GUARDAR NOTA EN SUPABASE
-      // ========================================================
-  
-      const {
-        data,
-        error
-      } =
-        await createNota({
-  
-          fecha:
-            date,
-  
-          hora:
-            time,
-  
-          usuario:
-            savedBy.trim(),
-  
-          concepto:
-            concept,
-  
-          proveedor:
-            provider,
-  
-          importe:
-            amount,
-  
-          leido:
-            false,
-  
-          imagen_url:
-            imageUrl
-  
-        });
-  
-  
-      if (error) {
-  
-        console.error(
-          "❌ Error guardando nota en Supabase:",
-          error
+
+
+      // ======================================================
+      // INFORMACIÓN
+      // ======================================================
+
+      const info =
+        document.createElement(
+          "div"
         );
-  
-        alert(
-          "No se ha podido guardar la nota."
+
+
+      info.className =
+        "note-card-meta";
+
+
+      const date =
+        note.createdAt
+          ? new Date(
+              note.createdAt
+            ).toLocaleString(
+              "es-ES"
+            )
+          : "—";
+
+
+      info.textContent =
+        `${date} · ${note.user || "—"}`;
+
+
+      card.append(
+        info
+      );
+
+
+      // ======================================================
+      // LEÍDA
+      // ======================================================
+
+      const readLabel =
+        document.createElement(
+          "label"
         );
-  
-        return;
-      }
-  
-  
-      console.log(
-        "✅ Nota guardada en Supabase:",
-        data
-      );
-  
-  
-      // ========================================================
-      // ACTUALIZAR ESTADO LOCAL
-      // ========================================================
-  
-      const note = {
-  
-        id:
-          data.id,
-  
-        concept:
-          data.concepto,
-  
-        provider:
-          data.proveedor,
-  
-        amount:
-          Number(
-            data.importe || 0
-          ),
-  
-        read:
-          Boolean(
-            data.leido
-          ),
-  
-        savedBy:
-          data.usuario,
-  
-        time:
-          data.hora,
-  
-        imageUrl:
-          data.imagen_url ||
-          null
-  
-      };
-  
-  
-      state.notes[date] =
-        state.notes[date] ||
-        [];
-  
-  
-      state.notes[date].push(
-        note
-      );
-  
-  
-      saveState();
-  
-  
-      els.noteForm.reset();
-  
-  
-      renderNotas();
-  
-  
-      console.log(
-        "✅ Nota añadida correctamente:",
-        note
-      );
-  
-  
-    } catch (error) {
-  
-      console.error(
-        "❌ Error inesperado guardando nota:",
-        error
-      );
-  
-      alert(
-        "Ha ocurrido un error al guardar la nota."
-      );
-  
-    } finally {
-  
-      if (submitButton) {
-        submitButton.disabled =
-          false;
-      }
-  
-    }
-  
-  }
-  
-  
-  // ============================================================
-  // MARCAR LEÍDO / PENDIENTE
-  // ============================================================
-  
-  async function updateNoteRead(
-    event
-  ) {
-  
-    const input =
-      event.target.closest(
-        "[data-note-read]"
-      );
-  
-  
-    if (!input) {
-      return;
-    }
-  
-  
-    if (
-      ![
-        "admin",
-        "jefeBarra"
-      ].includes(
-        session?.role
-      )
-    ) {
-  
-      return;
-    }
-  
-  
-    const noteId =
-      input.dataset.noteRead;
-  
-  
-    const read =
-      input.checked;
-  
-  
-    const date =
-      els.entryDate.value;
-  
-  
-    const rows =
-      state.notes[date] || [];
-  
-  
-    const note =
-      rows.find(
-        (item) =>
-          item.id === noteId
-      );
-  
-  
-    if (!note) {
-      return;
-    }
-  
-  
-    input.disabled =
-      true;
-  
-  
-    try {
-  
-      const {
-        data,
-        error
-      } =
-        await updateNotaLeida(
-          noteId,
-          read
+
+
+      readLabel.className =
+        "note-read note-card-read";
+
+
+      const actions =
+        document.createElement(
+          "div"
         );
-  
-  
-      if (error) {
-  
-        console.error(
-          "❌ Error actualizando estado de nota:",
-          error
+
+
+      actions.className =
+        "note-card-actions";
+
+
+      const readCheckbox =
+        document.createElement(
+          "input"
         );
-  
-        input.checked =
-          note.read;
-  
-        alert(
-          "No se ha podido actualizar el estado de la nota."
-        );
-  
-        return;
-      }
-  
-  
-      note.read =
+
+
+      readCheckbox.type =
+        "checkbox";
+
+
+      readCheckbox.checked =
         Boolean(
-          data.leido
+          note.read
         );
-  
-  
-      saveState();
-  
-  
-      renderNotas();
-  
-  
-      console.log(
-        "✅ Estado de nota actualizado en Supabase:",
-        data
+
+
+      readCheckbox.dataset.noteRead =
+        note.id;
+
+
+      readLabel.append(
+        readCheckbox,
+        document.createTextNode(
+          " Leída"
+        )
       );
-  
-  
-    } catch (error) {
-  
-      console.error(
-        "❌ Error inesperado actualizando nota:",
-        error
+
+
+      actions.append(
+        readLabel
       );
-  
-      input.checked =
-        note.read;
-  
-    } finally {
-  
-      input.disabled =
-        false;
-  
-    }
-  
-  }
-  
-  
-  // ============================================================
-  // ELIMINAR NOTA
-  // ============================================================
-  
-  async function deleteNote(
-    event
-  ) {
-  
-    const button =
-      event.target.closest(
-        "[data-note-delete]"
-      );
-  
-  
-    if (!button) {
-      return;
-    }
-  
-  
-    if (
-      ![
-        "admin",
-        "jefeBarra"
-      ].includes(
-        session?.role
-      )
-    ) {
-  
-      return;
-    }
-  
-  
-    const noteId =
-      button.dataset.noteDelete;
-  
-  
-    const date =
-      els.entryDate.value;
-  
-  
-    const rows =
-      state.notes[date] || [];
-  
-  
-    const note =
-      rows.find(
-        (item) =>
-          item.id === noteId
-      );
-  
-  
-    if (!note) {
-      return;
-    }
-  
-  
-    const confirmed =
-      window.confirm(
-        `¿Quieres eliminar la nota "${note.concept}"?`
-      );
-  
-  
-    if (!confirmed) {
-      return;
-    }
-  
-  
-    button.disabled =
-      true;
-  
-  
-    try {
-  
-      const {
-        error
-      } =
-        await deleteNotaService(
-          noteId
+
+
+      // ======================================================
+      // BOTÓN ELIMINAR
+      // ======================================================
+
+      if (
+        appState.session &&
+        ["admin", "jefeBarra"].includes(
+          appState.session.role
+        )
+      ) {
+
+        const deleteButton =
+          document.createElement(
+            "button"
+          );
+
+
+        deleteButton.type =
+          "button";
+
+
+        deleteButton.className =
+          "btn btn-danger";
+
+
+        deleteButton.dataset.deleteNote =
+          note.id;
+
+
+        deleteButton.textContent =
+          "Eliminar";
+
+
+        actions.append(
+          deleteButton
         );
-  
-  
-      if (error) {
-  
-        console.error(
-          "❌ Error eliminando nota de Supabase:",
-          error
-        );
-  
-        alert(
-          "No se ha podido eliminar la nota."
-        );
-  
-        return;
+
       }
-  
-  
-      state.notes[date] =
-        rows.filter(
-          (item) =>
-            item.id !== noteId
-        );
-  
-  
-      saveState();
-  
-  
-      renderNotas();
-  
-  
-      console.log(
-        "🗑️ Nota eliminada correctamente:",
-        noteId
+
+
+      card.append(
+        actions
       );
-  
-  
+
+
+      els.noteRows.append(
+        card
+      );
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// AÑADIR NOTA
+// ============================================================
+
+function getCurrentNoteDate() {
+
+  const now =
+    new Date();
+
+
+  return [
+    now.getFullYear(),
+    String(
+      now.getMonth() + 1
+    ).padStart(2, "0"),
+    String(
+      now.getDate()
+    ).padStart(2, "0")
+  ].join("-");
+
+}
+
+
+function getCurrentNoteTime() {
+
+  const now =
+    new Date();
+
+
+  return [
+    String(
+      now.getHours()
+    ).padStart(2, "0"),
+    String(
+      now.getMinutes()
+    ).padStart(2, "0")
+  ].join(":");
+
+}
+
+
+async function addNote(event) {
+
+  event.preventDefault();
+
+
+  if (!appState.session) {
+
+    alert(
+      "Debes iniciar sesión."
+    );
+
+    return;
+
+  }
+
+
+  const concept =
+    els.noteConcept?.value.trim();
+
+
+  const provider =
+    els.noteProvider?.value.trim();
+
+
+  const amount =
+    Number(
+      els.noteAmount?.value || 0
+    );
+
+
+  const noteDate =
+    els.noteDate?.value ||
+    getCurrentNoteDate();
+
+
+  if (!concept) {
+
+    alert(
+      "Introduce un concepto."
+    );
+
+    return;
+
+  }
+
+
+  let imageUrl =
+    null;
+
+
+  // ==========================================================
+  // SUBIR IMAGEN
+  // ==========================================================
+
+  const file =
+    els.noteImage?.files?.[0];
+
+
+  if (file) {
+
+    try {
+
+      const extension =
+        file.name
+          .split(".")
+          .pop();
+
+
+      const path =
+        `${appState.session.userId}/${crypto.randomUUID()}.${extension}`;
+
+
+      const {
+        error: uploadError
+      } = await db.storage
+        .from("notas")
+        .upload(
+          path,
+          file,
+          {
+            upsert: false
+          }
+        );
+
+
+      if (uploadError) {
+
+        console.error(
+          "❌ Error subiendo imagen:",
+          uploadError
+        );
+
+
+        alert(
+          "No se ha podido subir la imagen."
+        );
+
+
+        return;
+
+      }
+
+
+      const {
+        data: publicData
+      } =
+        db.storage
+          .from("notas")
+          .getPublicUrl(
+            path
+          );
+
+
+      imageUrl =
+        publicData.publicUrl;
+
     } catch (error) {
-  
+
       console.error(
-        "❌ Error inesperado eliminando nota:",
+        "❌ Error procesando imagen:",
         error
       );
-  
+
+
       alert(
-        "Ha ocurrido un error al eliminar la nota."
+        "No se ha podido procesar la imagen."
       );
-  
-    } finally {
-  
-      button.disabled =
-        false;
-  
+
+
+      return;
+
     }
-  
+
   }
+
+
+  // ==========================================================
+  // INSERTAR NOTA
+  // ==========================================================
+
+  const {
+    data,
+    error
+  } = await db
+    .from("notas")
+    .insert({
+
+      concepto:
+        concept,
+
+      proveedor:
+        provider || null,
+
+      importe:
+        amount,
+
+      imagen_url:
+        imageUrl,
+
+      fecha:
+        noteDate,
+
+      hora:
+        getCurrentNoteTime(),
+
+      usuario:
+        appState.session.username,
+
+      leido:
+        false
+
+    })
+    .select(
+      `
+      id,
+      concepto,
+      proveedor,
+      importe,
+      imagen_url,
+      leido,
+      fecha,
+      hora,
+      usuario
+      `
+    )
+    .single();
+
+
+  if (error) {
+
+    console.error(
+      "❌ Error creando nota:",
+      error
+    );
+
+
+    alert(
+      "No se ha podido guardar la nota."
+    );
+
+
+    return;
+
+  }
+
+
+  // ==========================================================
+  // ACTUALIZAR ESTADO
+  // ==========================================================
+
+  state.notes.unshift({
+
+    id:
+      data.id,
+
+    concept:
+      data.concepto,
+
+    provider:
+      data.proveedor,
+
+    amount:
+      Number(
+        data.importe || 0
+      ),
+
+    imageUrl:
+      data.imagen_url,
+
+    read:
+      data.leido,
+
+    createdAt:
+      data.fecha && data.hora
+        ? `${data.fecha}T${data.hora}`
+        : data.fecha,
+
+    user:
+      appState.session.username
+
+  });
+
+
+  saveState();
+
+
+  // ==========================================================
+  // LIMPIAR FORMULARIO
+  // ==========================================================
+
+  if (els.noteForm) {
+
+    els.noteForm.reset();
+
+  }
+
+
+  renderNotas();
+
+
+  console.log(
+    "📝 Nota creada:",
+    data
+  );
+
+}
+
+
+// ============================================================
+// ACTUALIZAR LEÍDA
+// ============================================================
+
+async function updateNoteRead(event) {
+
+  const checkbox =
+    event.target.closest(
+      "[data-note-read]"
+    );
+
+
+  if (!checkbox) {
+    return;
+  }
+
+
+  const noteId =
+    checkbox.dataset.noteRead;
+
+
+  const read =
+    checkbox.checked;
+
+
+  const {
+    error
+  } = await db
+    .from("notas")
+    .update({
+      leido: read
+    })
+    .eq(
+      "id",
+      noteId
+    );
+
+
+  if (error) {
+
+    console.error(
+      "❌ Error actualizando nota:",
+      error
+    );
+
+
+    return;
+
+  }
+
+
+  const note =
+    state.notes.find(
+      (item) =>
+        item.id === noteId
+    );
+
+
+  if (note) {
+
+    note.read =
+      read;
+
+  }
+
+
+  saveState();
+
+}
+
+
+// ============================================================
+// DESCARGAR IMAGEN DE NOTA
+// ============================================================
+
+async function downloadNoteImage(
+  event
+) {
+
+  const button =
+    event.target.closest(
+      "[data-note-image-download]"
+    );
+
+
+  if (!button) {
+    return;
+  }
+
+
+  const imageUrl =
+    button.dataset.noteImageDownload;
+
+
+  if (!imageUrl) {
+    return;
+  }
+
+
+  button.disabled =
+    true;
+
+
+  try {
+
+    const response =
+      await fetch(
+        imageUrl
+      );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+
+    }
+
+
+    const blob =
+      await response.blob();
+
+
+    const objectUrl =
+      URL.createObjectURL(
+        blob
+      );
+
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+
+    link.href =
+      objectUrl;
+
+
+    link.download =
+      `nota-${Date.now()}.jpg`;
+
+
+    document.body.append(
+      link
+    );
+
+
+    link.click();
+
+
+    link.remove();
+
+
+    URL.revokeObjectURL(
+      objectUrl
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "❌ No se pudo descargar la imagen:",
+      error
+    );
+
+
+    // Fallback si el navegador bloquea
+    // la descarga directa.
+
+    window.open(
+      imageUrl,
+      "_blank",
+      "noopener,noreferrer"
+    );
+
+  } finally {
+
+    button.disabled =
+      false;
+
+  }
+
+}
+
+
+// ============================================================
+// ELIMINAR NOTA
+// ============================================================
+
+async function deleteNote(
+  event
+) {
+
+  // Si el click ha sido sobre la miniatura,
+  // NO debe intentar eliminar la nota.
+
+  if (
+    event.target.closest(
+      "[data-note-image-download]"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const button =
+    event.target.closest(
+      "[data-delete-note]"
+    );
+
+
+  if (!button) {
+    return;
+  }
+
+
+  if (
+    !appState.session ||
+    !["admin", "jefeBarra"].includes(
+      appState.session.role
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const noteId =
+    button.dataset.deleteNote;
+
+
+  const confirmDelete =
+    confirm(
+      "¿Quieres eliminar esta nota?"
+    );
+
+
+  if (!confirmDelete) {
+    return;
+  }
+
+
+  const {
+    error
+  } = await db
+    .from("notas")
+    .delete()
+    .eq(
+      "id",
+      noteId
+    );
+
+
+  if (error) {
+
+    console.error(
+      "❌ Error eliminando nota:",
+      error
+    );
+
+
+    alert(
+      "No se ha podido eliminar la nota."
+    );
+
+
+    return;
+
+  }
+
+
+  state.notes =
+    state.notes.filter(
+      (note) =>
+        note.id !== noteId
+    );
+
+
+  saveState();
+
+
+  renderNotas();
+
+
+  console.log(
+    "🗑️ Nota eliminada:",
+    noteId
+  );
+
+}

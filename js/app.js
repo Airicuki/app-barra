@@ -33,11 +33,6 @@ import {
 } from "./modules/inventario.js";
 
 import {
-  initPerdidas,
-  renderPerdidas
-} from "./modules/perdidas.js";
-
-import {
   initInformes
 } from "./modules/informes.js";
 
@@ -62,15 +57,9 @@ import {
 // =====================================================
 // CONTROL DE INICIALIZACIÓN
 // =====================================================
-//
-// Evita inicializar los módulos dos veces.
-//
-// Esto es especialmente importante para ventas,
-// porque initVentas() añade listeners a los botones.
-//
-// =====================================================
 
-let modulesInitialized = false;
+let modulesInitialized =
+  false;
 
 
 // =====================================================
@@ -95,24 +84,16 @@ async function initializeModules() {
   );
 
 
-  // ===================================================
+  // =================================================
   // VENTAS
-  // ===================================================
-  //
-  // IMPORTANTE:
-  // initVentas() carga productos_barra desde Supabase.
-  // Por eso SOLO se ejecuta cuando ya existe sesión.
-  //
-  // ===================================================
+  // =================================================
 
   await initVentas();
 
 
-  // ===================================================
+  // =================================================
   // RESTO DE MÓDULOS
-  // ===================================================
-
-  initPerdidas();
+  // =================================================
 
   initCaja();
 
@@ -125,7 +106,8 @@ async function initializeModules() {
   await initDashboard();
 
 
-  modulesInitialized = true;
+  modulesInitialized =
+    true;
 
 
   console.log(
@@ -136,7 +118,7 @@ async function initializeModules() {
 
 
 // =====================================================
-// CARGAR TODOS LOS DATOS DE LA APLICACIÓN
+// CARGAR DATOS DE LA APLICACIÓN
 // =====================================================
 
 async function loadApplicationData() {
@@ -145,10 +127,6 @@ async function loadApplicationData() {
     "📦 Cargando datos de la aplicación..."
   );
 
-
-  // ===================================================
-  // COMPROBAR SESIÓN
-  // ===================================================
 
   if (!appState.session) {
 
@@ -161,47 +139,61 @@ async function loadApplicationData() {
   }
 
 
-  // ===================================================
-  // CARGAR DATOS DESDE SUPABASE
-  // ===================================================
+  // =================================================
+  // INVENTARIO
+  // =================================================
 
   console.log(
     "📦 Cargando inventario..."
   );
 
+
   await loadProductsFromSupabase();
 
+
+  // =================================================
+  // CAJA
+  // =================================================
 
   console.log(
     "💰 Cargando caja..."
   );
 
+
   await loadCashFromSupabase();
 
+
+  // =================================================
+  // NOTAS
+  // =================================================
 
   console.log(
     "📝 Cargando notas..."
   );
 
+
   await loadNotas();
 
+
+  // =================================================
+  // RANCHO
+  // =================================================
 
   console.log(
     "🍽️ Cargando rancho..."
   );
 
+
   await loadRancho();
 
 
-  // ===================================================
-  // RENDERIZAR MÓDULOS
-  // ===================================================
+  // =================================================
+  // RENDERIZAR
+  // =================================================
 
   renderInventory();
 
   renderVentas();
-
-  renderPerdidas();
 
   renderCaja();
 
@@ -210,9 +202,9 @@ async function loadApplicationData() {
   renderRancho();
 
 
-  // ===================================================
+  // =================================================
   // DASHBOARD
-  // ===================================================
+  // =================================================
 
   await renderDashboard();
 
@@ -289,10 +281,6 @@ document.addEventListener(
               : "Ocultar contraseña"
           );
 
-
-          // -------------------------------------------------
-          // ICONO OJO
-          // -------------------------------------------------
 
           els.togglePassword.innerHTML =
             visible
@@ -425,6 +413,22 @@ document.addEventListener(
     }
 
 
+    if (els.inventorySearch) {
+
+      els.inventorySearch.addEventListener(
+        "input",
+        () => {
+
+          renderInventory(
+            els.inventorySearch.value
+          );
+
+        }
+      );
+
+    }
+
+
     // =================================================
     // FECHA OPERATIVA
     // =================================================
@@ -439,14 +443,6 @@ document.addEventListener(
 
     // =================================================
     // LOGIN COMPLETADO
-    // =================================================
-    //
-    // auth.js ya lanza este evento después de crear
-    // correctamente appState.session.
-    //
-    // IMPORTANTE:
-    // El listener se registra ANTES de testAuth().
-    //
     // =================================================
 
     window.addEventListener(
@@ -475,23 +471,23 @@ document.addEventListener(
         );
 
 
-        // -----------------------------------------------
+        // ---------------------------------------------
         // Inicializar módulos
-        // -----------------------------------------------
+        // ---------------------------------------------
 
         await initializeModules();
 
 
-        // -----------------------------------------------
-        // Cargar TODOS los datos
-        // -----------------------------------------------
+        // ---------------------------------------------
+        // Cargar datos
+        // ---------------------------------------------
 
         await loadApplicationData();
 
 
-        // -----------------------------------------------
+        // ---------------------------------------------
         // Mostrar dashboard
-        // -----------------------------------------------
+        // ---------------------------------------------
 
         await showDashboard();
 
@@ -500,7 +496,7 @@ document.addEventListener(
 
 
     // =================================================
-    // COMPROBAR SI YA EXISTE SESIÓN
+    // COMPROBAR SESIÓN EXISTENTE
     // =================================================
 
     const hasSession =
@@ -519,23 +515,11 @@ document.addEventListener(
       );
 
 
-      // -----------------------------------------------
-      // Inicializar módulos
-      // -----------------------------------------------
-
       await initializeModules();
 
 
-      // -----------------------------------------------
-      // Cargar datos
-      // -----------------------------------------------
-
       await loadApplicationData();
 
-
-      // -----------------------------------------------
-      // Mostrar dashboard
-      // -----------------------------------------------
 
       await showDashboard();
 

@@ -1006,5 +1006,209 @@ import {
       </section>
   
     `;
+
+
+    // El informe muestra únicamente las ventas. Las pérdidas se
+    // registran en su sección propia, pero no forman parte de esta vista.
+    const headings =
+      els.cashReport.querySelectorAll(
+        ".report-card > h3"
+      );
+
+
+    const tables =
+      els.cashReport.querySelectorAll(
+        ".report-card > .table-wrapper"
+      );
+
+
+    tables[0]?.replaceWith(
+      renderProductSalesTable(
+        ventas,
+        totalVentas
+      )
+    );
+
+
+    headings[2]?.classList.add(
+      "report-sales-heading"
+    );
+
+    headings[3]?.remove();
+    tables[1]?.remove();
   
   }
+
+
+function renderProductSalesTable(
+  ventas,
+  totalVentas
+) {
+
+  const products =
+    new Map();
+
+
+  ventas.forEach(
+    (venta) => {
+
+      (venta.detalle_ventas || []).forEach(
+        (detalle) => {
+
+          const name =
+            detalle.productos?.nombre ||
+            "Producto";
+
+
+          const quantity =
+            Number(
+              detalle.cantidad || 0
+            );
+
+
+          const amount =
+            quantity * Number(
+              detalle.precio || 0
+            );
+
+
+          const current =
+            products.get(name) || {
+              quantity: 0,
+              amount: 0
+            };
+
+
+          current.quantity +=
+            quantity;
+
+
+          current.amount +=
+            amount;
+
+
+          products.set(
+            name,
+            current
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+  const wrapper =
+    document.createElement(
+      "div"
+    );
+
+
+  wrapper.className =
+    "table-wrapper report-sales-table";
+
+
+  const table =
+    document.createElement(
+      "table"
+    );
+
+
+  const head =
+    document.createElement(
+      "thead"
+    );
+
+
+  head.innerHTML = `
+    <tr>
+      <th>Producto</th>
+      <th>Unidades</th>
+      <th>Importe</th>
+    </tr>
+  `;
+
+
+  const body =
+    document.createElement(
+      "tbody"
+    );
+
+
+  const rows =
+    [...products.entries()]
+      .sort(
+        ([firstName], [secondName]) =>
+          firstName.localeCompare(
+            secondName,
+            "es"
+          )
+      );
+
+
+  if (!rows.length) {
+
+    body.innerHTML = `
+      <tr>
+        <td colspan="3">No hay ventas.</td>
+      </tr>
+    `;
+
+  } else {
+
+    rows.forEach(
+      ([name, values]) => {
+
+        const row =
+          document.createElement(
+            "tr"
+          );
+
+
+        row.innerHTML = `
+          <td>${name}</td>
+          <td>${values.quantity}</td>
+          <td>${values.amount.toFixed(2)} €</td>
+        `;
+
+
+        body.append(
+          row
+        );
+
+      }
+    );
+
+  }
+
+
+  const foot =
+    document.createElement(
+      "tfoot"
+    );
+
+
+  foot.innerHTML = `
+    <tr>
+      <th colspan="2">Total ventas</th>
+      <th>${totalVentas.toFixed(2)} €</th>
+    </tr>
+  `;
+
+
+  table.append(
+    head,
+    body,
+    foot
+  );
+
+
+  wrapper.append(
+    table
+  );
+
+
+  return wrapper;
+
+}

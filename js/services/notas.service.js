@@ -2,27 +2,69 @@ import { db } from "../config/supabase.js";
 
 
 // ============================================================
-// OBTENER NOTAS DE UNA FECHA
+// OBTENER NOTAS
 // ============================================================
 
-export async function getNotas(fecha) {
-  return await db
-    .from("notas")
-    .select(`
-      id,
-      fecha,
-      hora,
-      usuario,
-      concepto,
-      proveedor,
-      importe,
-      leido,
-      imagen_url
-    `)
-    .eq("fecha", fecha)
-    .order("hora", {
-      ascending: false
-    });
+export async function getNotas(
+  date
+) {
+
+  if (!date) {
+
+    return {
+      data: [],
+      error: null
+    };
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("notas")
+      .select(
+        `
+        id,
+        fecha,
+        hora,
+        usuario,
+        concepto,
+        proveedor,
+        importe,
+        leido,
+        imagen_url
+        `
+      )
+      .eq(
+        "fecha",
+        date
+      )
+      .order(
+        "hora",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "❌ Error obteniendo notas:",
+      error
+    );
+
+  }
+
+
+  return {
+    data,
+    error
+  };
+
 }
 
 
@@ -30,49 +72,140 @@ export async function getNotas(fecha) {
 // CREAR NOTA
 // ============================================================
 
-export async function createNota({
-  fecha,
-  hora,
-  usuario,
-  concepto,
-  proveedor,
-  importe,
-  leido = false,
-  imagen_url = null
-}) {
-  return await db
-    .from("notas")
-    .insert({
-      fecha,
-      hora,
-      usuario,
-      concepto,
-      proveedor,
-      importe,
-      leido,
-      imagen_url
-    })
-    .select()
-    .single();
+export async function createNota(
+  note
+) {
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("notas")
+      .insert({
+
+        fecha:
+          note.fecha,
+
+        hora:
+          note.hora,
+
+        usuario:
+          note.usuario,
+
+        concepto:
+          note.concepto,
+
+        proveedor:
+          note.proveedor,
+
+        importe:
+          Number(
+            note.importe || 0
+          ),
+
+        leido:
+          Boolean(
+            note.leido
+          ),
+
+        imagen_url:
+          note.imagen_url ||
+          null
+
+      })
+      .select(
+        `
+        id,
+        fecha,
+        hora,
+        usuario,
+        concepto,
+        proveedor,
+        importe,
+        leido,
+        imagen_url
+        `
+      )
+      .single();
+
+
+  if (error) {
+
+    console.error(
+      "❌ Error creando nota:",
+      error
+    );
+
+  }
+
+
+  return {
+    data,
+    error
+  };
+
 }
 
 
 // ============================================================
-// ACTUALIZAR ESTADO LEÍDO/PENDIENTE
+// ACTUALIZAR ESTADO LEÍDO
 // ============================================================
 
 export async function updateNotaLeida(
   noteId,
   leido
 ) {
-  return await db
-    .from("notas")
-    .update({
-      leido
-    })
-    .eq("id", noteId)
-    .select()
-    .single();
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("notas")
+      .update({
+
+        leido:
+          Boolean(
+            leido
+          )
+
+      })
+      .eq(
+        "id",
+        noteId
+      )
+      .select(
+        `
+        id,
+        fecha,
+        hora,
+        usuario,
+        concepto,
+        proveedor,
+        importe,
+        leido,
+        imagen_url
+        `
+      )
+      .single();
+
+
+  if (error) {
+
+    console.error(
+      "❌ Error actualizando nota:",
+      error
+    );
+
+  }
+
+
+  return {
+    data,
+    error
+  };
+
 }
 
 
@@ -83,8 +216,32 @@ export async function updateNotaLeida(
 export async function deleteNota(
   noteId
 ) {
-  return await db
-    .from("notas")
-    .delete()
-    .eq("id", noteId);
+
+  const {
+    error
+  } =
+    await db
+      .from("notas")
+      .delete()
+      .eq(
+        "id",
+        noteId
+      );
+
+
+  if (error) {
+
+    console.error(
+      "❌ Error eliminando nota:",
+      error
+    );
+
+  }
+
+
+  return {
+    data: null,
+    error
+  };
+
 }
