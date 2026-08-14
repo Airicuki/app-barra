@@ -933,117 +933,201 @@ export async function initVentas() {
   // CAMBIAR CANTIDAD
   // ============================================================
   
-  function changeQuantity(event) {
-  
-    const button =
-      event.target.closest(
-        "button"
-      );
-  
-  
-    const row =
-      event.target.closest(
-        ".product-stepper-row"
-      );
-  
-  
-    if (
-      !button ||
-      !row
-    ) {
-  
-      return;
-  
-    }
-  
-  
-    const productId =
-      row.dataset.productId;
-  
-  
-    const product =
-      (
-        state.barProducts || []
-      ).find(
-        (item) =>
-          item.id === productId
-      );
-  
-  
-    if (!product) {
-  
-      console.warn(
-        "⚠️ Producto de barra no encontrado:",
-        productId
-      );
-  
-      return;
-  
-    }
-  
-  
-    const current =
-      cart[
-        productId
-      ] || 0;
-  
-  
-    let next;
-  
-  
-    // ----------------------------------------------------------
-    // AÑADIR
-    // ----------------------------------------------------------
-  
-    if (
-      button.matches(
-        "[data-plus]"
-      )
-    ) {
-  
-      next =
-        current + 1;
-  
-    }
-  
-  
-    // ----------------------------------------------------------
-    // RESTAR
-    // ----------------------------------------------------------
-  
-    else {
-  
-      next =
-        Math.max(
-          0,
-          current - 1
-        );
-  
-    }
-  
-  
-    // ----------------------------------------------------------
-    // ACTUALIZAR CARRITO
-    // ----------------------------------------------------------
-  
-    if (next === 0) {
-  
-      delete cart[
-        productId
-      ];
-  
-    } else {
-  
-      cart[
-        productId
-      ] = next;
-  
-    }
-  
-  
-    renderProductSteppers();
-  
+  // ============================================================
+// CAMBIAR CANTIDAD
+// ============================================================
+
+function changeQuantity(event) {
+
+  const button =
+    event.target.closest(
+      "button"
+    );
+
+
+  const row =
+    event.target.closest(
+      ".product-stepper-row"
+    );
+
+
+  // ----------------------------------------------------------
+  // COMPROBAR CLICK
+  // ----------------------------------------------------------
+
+  if (
+    !button ||
+    !row
+  ) {
+
+    return;
+
   }
+
+
+  // ----------------------------------------------------------
+  // ID DEL PRODUCTO
+  // ----------------------------------------------------------
+
+  const productId =
+    row.dataset.productId;
+
+
+  if (!productId) {
+
+    return;
+
+  }
+
+
+  // ----------------------------------------------------------
+  // BUSCAR PRODUCTO
+  // ----------------------------------------------------------
+
+  const product =
+    (
+      state.barProducts || []
+    ).find(
+      (item) =>
+        item.id === productId
+    );
+
+
+  if (!product) {
+
+    console.warn(
+      "⚠️ Producto de barra no encontrado:",
+      productId
+    );
+
+    return;
+
+  }
+
+
+  // ----------------------------------------------------------
+  // CANTIDAD ACTUAL
+  // ----------------------------------------------------------
+
+  const current =
+    cart[
+      productId
+    ] || 0;
+
+
+  let next;
+
+
+  // ----------------------------------------------------------
+  // AÑADIR
+  // ----------------------------------------------------------
+
+  if (
+    button.matches(
+      "[data-plus]"
+    )
+  ) {
+
+    next =
+      current + 1;
+
+  }
+
+
+  // ----------------------------------------------------------
+  // RESTAR
+  // ----------------------------------------------------------
+
+  else if (
+    button.matches(
+      "[data-minus]"
+    )
+  ) {
+
+    next =
+      Math.max(
+        0,
+        current - 1
+      );
+
+  }
+
+
+  // ----------------------------------------------------------
+  // OTRO BOTÓN
+  // ----------------------------------------------------------
+
+  else {
+
+    return;
+
+  }
+
+
+  // ==========================================================
+  // ACTUALIZAR CARRITO
+  // ==========================================================
+
+  if (
+    next === 0
+  ) {
+
+    delete cart[
+      productId
+    ];
+
+  } else {
+
+    cart[
+      productId
+    ] = next;
+
+  }
+
+
+  // ==========================================================
+  // ACTUALIZAR SOLO ESTA FILA
+  // ==========================================================
+  //
+  // IMPORTANTE:
+  // NO llamamos a renderProductSteppers().
+  //
+  // Si lo hacemos, renderBarProducts() reconstruye todas
+  // las categorías y las cierra.
+  //
+  // ==========================================================
+
+  const qty =
+    row.querySelector(
+      "[data-qty]"
+    );
+
+
+  if (qty) {
+
+    qty.textContent =
+      next;
+
+  }
+
+
+  // ----------------------------------------------------------
+  // MARCAR / DESMARCAR PRODUCTO
+  // ----------------------------------------------------------
+
+  row.classList.toggle(
+    "is-selected",
+    next > 0
+  );
+
+
+  // ==========================================================
+  // ACTUALIZAR RESUMEN
+  // ==========================================================
+
+  renderCartSummary();
+
+}
   
   
   // ============================================================
