@@ -60,6 +60,82 @@ import {
 
 
 // =====================================================
+// CONTROL DE INICIALIZACIÓN
+// =====================================================
+//
+// Evita inicializar los módulos dos veces.
+//
+// Esto es especialmente importante para ventas,
+// porque initVentas() añade listeners a los botones.
+//
+// =====================================================
+
+let modulesInitialized = false;
+
+
+// =====================================================
+// INICIALIZAR MÓDULOS
+// =====================================================
+
+async function initializeModules() {
+
+  if (modulesInitialized) {
+
+    console.log(
+      "ℹ️ Los módulos ya estaban inicializados."
+    );
+
+    return;
+
+  }
+
+
+  console.log(
+    "⚙️ Inicializando módulos con sesión..."
+  );
+
+
+  // ===================================================
+  // VENTAS
+  // ===================================================
+  //
+  // IMPORTANTE:
+  // initVentas() carga productos_barra desde Supabase.
+  // Por eso SOLO se ejecuta cuando ya existe sesión.
+  //
+  // ===================================================
+
+  await initVentas();
+
+
+  // ===================================================
+  // RESTO DE MÓDULOS
+  // ===================================================
+
+  initPerdidas();
+
+  initCaja();
+
+  initInformes();
+
+  initNotas();
+
+  initRancho();
+
+  await initDashboard();
+
+
+  modulesInitialized = true;
+
+
+  console.log(
+    "✅ Módulos inicializados correctamente."
+  );
+
+}
+
+
+// =====================================================
 // CARGAR TODOS LOS DATOS DE LA APLICACIÓN
 // =====================================================
 
@@ -71,14 +147,48 @@ async function loadApplicationData() {
 
 
   // ===================================================
+  // COMPROBAR SESIÓN
+  // ===================================================
+
+  if (!appState.session) {
+
+    console.error(
+      "❌ No se pueden cargar los datos: no existe sesión."
+    );
+
+    return;
+
+  }
+
+
+  // ===================================================
   // CARGAR DATOS DESDE SUPABASE
   // ===================================================
 
+  console.log(
+    "📦 Cargando inventario..."
+  );
+
   await loadProductsFromSupabase();
+
+
+  console.log(
+    "💰 Cargando caja..."
+  );
 
   await loadCashFromSupabase();
 
+
+  console.log(
+    "📝 Cargando notas..."
+  );
+
   await loadNotas();
+
+
+  console.log(
+    "🍽️ Cargando rancho..."
+  );
 
   await loadRancho();
 
@@ -108,14 +218,14 @@ async function loadApplicationData() {
 
 
   console.log(
-    "✅ Datos de la aplicación cargados"
+    "✅ Datos de la aplicación cargados correctamente."
   );
 
 }
 
 
 // =====================================================
-// INICIALIZACIÓN DE LA APLICACIÓN
+// INICIO DE LA APLICACIÓN
 // =====================================================
 
 document.addEventListener(
@@ -181,7 +291,7 @@ document.addEventListener(
 
 
           // -------------------------------------------------
-          // CAMBIAR ICONO
+          // ICONO OJO
           // -------------------------------------------------
 
           els.togglePassword.innerHTML =
@@ -328,31 +438,69 @@ document.addEventListener(
 
 
     // =================================================
-    // INICIALIZAR MÓDULOS
+    // LOGIN COMPLETADO
     // =================================================
     //
-    // Los inicializamos al arrancar la aplicación.
-    // No hacen la carga de datos hasta que exista sesión.
+    // auth.js ya lanza este evento después de crear
+    // correctamente appState.session.
+    //
+    // IMPORTANTE:
+    // El listener se registra ANTES de testAuth().
     //
     // =================================================
 
-    await initVentas();
+    window.addEventListener(
+      "app:session-ready",
+      async () => {
 
-    initPerdidas();
+        console.log(
+          "🔐 Login realizado correctamente."
+        );
 
-    initCaja();
 
-    initInformes();
+        if (!appState.session) {
 
-    initNotas();
+          console.error(
+            "❌ No existe sesión de aplicación."
+          );
 
-    initRancho();
+          return;
 
-    await initDashboard();
+        }
+
+
+        console.log(
+          "👤 Sesión:",
+          appState.session
+        );
+
+
+        // -----------------------------------------------
+        // Inicializar módulos
+        // -----------------------------------------------
+
+        await initializeModules();
+
+
+        // -----------------------------------------------
+        // Cargar TODOS los datos
+        // -----------------------------------------------
+
+        await loadApplicationData();
+
+
+        // -----------------------------------------------
+        // Mostrar dashboard
+        // -----------------------------------------------
+
+        await showDashboard();
+
+      }
+    );
 
 
     // =================================================
-    // COMPROBAR SESIÓN EXISTENTE
+    // COMPROBAR SI YA EXISTE SESIÓN
     // =================================================
 
     const hasSession =
@@ -360,7 +508,7 @@ document.addEventListener(
 
 
     // =================================================
-    // SI YA EXISTE SESIÓN
+    // SESIÓN YA EXISTENTE
     // =================================================
 
     if (hasSession) {
@@ -372,63 +520,27 @@ document.addEventListener(
 
 
       // -----------------------------------------------
-      // CARGAR DATOS
+      // Inicializar módulos
+      // -----------------------------------------------
+
+      await initializeModules();
+
+
+      // -----------------------------------------------
+      // Cargar datos
       // -----------------------------------------------
 
       await loadApplicationData();
 
 
       // -----------------------------------------------
-      // MOSTRAR DASHBOARD
+      // Mostrar dashboard
       // -----------------------------------------------
 
       await showDashboard();
 
-    }
 
-
-    // =================================================
-    // LOGIN REALIZADO
-    // =================================================
-    //
-    // auth.js lanzará este evento después de crear
-    // correctamente appState.session.
-    //
-    // Esto hace que el primer login y una sesión
-    // restaurada utilicen exactamente el mismo flujo.
-    //
-    // =================================================
-
-    window.addEventListener(
-      "app:session-ready",
-      async () => {
-
-        console.log(
-          "🔐 Sesión iniciada. Cargando datos..."
-        );
-
-
-        if (!appState.session) {
-
-          console.error(
-            "❌ No existe sesión de aplicación."
-          );
-
-          return;
-        }
-
-
-        await loadApplicationData();
-
-      }
-    );
-
-
-    // =================================================
-    // SIN SESIÓN
-    // =================================================
-
-    if (!hasSession) {
+    } else {
 
       console.log(
         "🔓 Esperando login..."
