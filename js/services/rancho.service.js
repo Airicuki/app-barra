@@ -12,7 +12,6 @@ export async function getRanchoPersonas() {
     .order("nombre", { ascending: true });
 }
 
-
 export async function createRanchoPersona(nombre) {
   return await db
     .from("rancho_personas")
@@ -52,7 +51,6 @@ export async function getRanchoTurnos(
     .order("rol", { ascending: true })
     .order("posicion", { ascending: true });
 }
-
 
 export async function saveRanchoTurno({
   fecha,
@@ -116,7 +114,6 @@ export async function getRanchoComidas(
     .order("tipo", { ascending: true });
 }
 
-
 export async function saveRanchoComida({
   fecha,
   tipo,
@@ -153,6 +150,10 @@ export async function saveRanchoComida({
     .single();
 }
 
+
+// ============================================================
+// ELIMINAR PERSONA DE COMIDA / CENA
+// ============================================================
 
 export async function deleteRanchoComida(
   fecha,

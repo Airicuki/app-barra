@@ -145,7 +145,7 @@ export async function initVentas() {
   // ============================================================
   
   function renderBarProducts() {
-  
+
     if (!els.dailyRows) {
       return;
     }
@@ -164,7 +164,6 @@ export async function initVentas() {
       );
   
       return;
-  
     }
   
   
@@ -201,7 +200,6 @@ export async function initVentas() {
   
   
       return;
-  
     }
   
   
@@ -239,7 +237,7 @@ export async function initVentas() {
   
   
     // ==========================================================
-    // AGRUPAR PRODUCTOS
+    // CATEGORÍAS
     // ==========================================================
   
     categories.forEach(
@@ -291,18 +289,38 @@ export async function initVentas() {
   
   
         // ======================================================
-        // CABECERA
+        // CABECERA DESPLEGABLE
         // ======================================================
   
         const header =
           document.createElement(
-            "div"
+            "button"
           );
+  
+  
+        header.type =
+          "button";
   
   
         header.className =
           "bar-category-header";
   
+  
+        header.setAttribute(
+          "aria-expanded",
+          "false"
+        );
+  
+  
+        header.setAttribute(
+          "aria-label",
+          `Abrir categoría ${category.title}`
+        );
+  
+  
+        // ------------------------------------------------------
+        // TÍTULO
+        // ------------------------------------------------------
   
         const title =
           document.createElement(
@@ -318,8 +336,64 @@ export async function initVentas() {
           `${category.icon} ${category.title}`;
   
   
+        // ------------------------------------------------------
+        // FLECHA
+        // ------------------------------------------------------
+  
+        const arrow =
+          document.createElement(
+            "span"
+          );
+  
+  
+        arrow.className =
+          "bar-category-arrow";
+  
+  
+        arrow.textContent =
+          "›";
+  
+  
+        arrow.setAttribute(
+          "aria-hidden",
+          "true"
+        );
+  
+  
+        // ------------------------------------------------------
+        // EVENTO ABRIR / CERRAR
+        // ------------------------------------------------------
+  
+        header.addEventListener(
+          "click",
+          () => {
+  
+            const isOpen =
+              section.classList.toggle(
+                "is-open"
+              );
+  
+  
+            header.setAttribute(
+              "aria-expanded",
+              String(isOpen)
+            );
+  
+  
+            header.setAttribute(
+              "aria-label",
+              isOpen
+                ? `Cerrar categoría ${category.title}`
+                : `Abrir categoría ${category.title}`
+            );
+  
+          }
+        );
+  
+  
         header.append(
-          title
+          title,
+          arrow
         );
   
   
@@ -357,8 +431,12 @@ export async function initVentas() {
   
             row.dataset.mode =
               "sale";
-
-
+  
+  
+            // --------------------------------------------------
+            // PRODUCTO SELECCIONADO
+            // --------------------------------------------------
+  
             row.classList.toggle(
               "is-selected",
               Boolean(
@@ -473,6 +551,10 @@ export async function initVentas() {
       uncategorized.length
     ) {
   
+      // ========================================================
+      // CONTENEDOR
+      // ========================================================
+  
       const section =
         document.createElement(
           "section"
@@ -483,15 +565,43 @@ export async function initVentas() {
         "bar-category";
   
   
+      section.dataset.category =
+        "otros";
+  
+  
+      // ========================================================
+      // CABECERA
+      // ========================================================
+  
       const header =
         document.createElement(
-          "div"
+          "button"
         );
+  
+  
+      header.type =
+        "button";
   
   
       header.className =
         "bar-category-header";
   
+  
+      header.setAttribute(
+        "aria-expanded",
+        "false"
+      );
+  
+  
+      header.setAttribute(
+        "aria-label",
+        "Abrir categoría Otros"
+      );
+  
+  
+      // --------------------------------------------------------
+      // TÍTULO
+      // --------------------------------------------------------
   
       const title =
         document.createElement(
@@ -507,8 +617,64 @@ export async function initVentas() {
         "🍺 Otros";
   
   
+      // --------------------------------------------------------
+      // FLECHA
+      // --------------------------------------------------------
+  
+      const arrow =
+        document.createElement(
+          "span"
+        );
+  
+  
+      arrow.className =
+        "bar-category-arrow";
+  
+  
+      arrow.textContent =
+        "›";
+  
+  
+      arrow.setAttribute(
+        "aria-hidden",
+        "true"
+      );
+  
+  
+      // --------------------------------------------------------
+      // ABRIR / CERRAR
+      // --------------------------------------------------------
+  
+      header.addEventListener(
+        "click",
+        () => {
+  
+          const isOpen =
+            section.classList.toggle(
+              "is-open"
+            );
+  
+  
+          header.setAttribute(
+            "aria-expanded",
+            String(isOpen)
+          );
+  
+  
+          header.setAttribute(
+            "aria-label",
+            isOpen
+              ? "Cerrar categoría Otros"
+              : "Abrir categoría Otros"
+          );
+  
+        }
+      );
+  
+  
       header.append(
-        title
+        title,
+        arrow
       );
   
   
@@ -516,6 +682,10 @@ export async function initVentas() {
         header
       );
   
+  
+      // ========================================================
+      // PRODUCTOS SIN CATEGORÍA
+      // ========================================================
   
       const productsContainer =
         document.createElement(
@@ -542,8 +712,12 @@ export async function initVentas() {
   
           row.dataset.mode =
             "sale";
-
-
+  
+  
+          // ----------------------------------------------------
+          // PRODUCTO SELECCIONADO
+          // ----------------------------------------------------
+  
           row.classList.toggle(
             "is-selected",
             Boolean(
@@ -551,6 +725,10 @@ export async function initVentas() {
             )
           );
   
+  
+          // ----------------------------------------------------
+          // NOMBRE
+          // ----------------------------------------------------
   
           const name =
             row.querySelector(
@@ -565,6 +743,10 @@ export async function initVentas() {
   
           }
   
+  
+          // ----------------------------------------------------
+          // PRECIO
+          // ----------------------------------------------------
   
           const price =
             row.querySelector(
@@ -581,6 +763,10 @@ export async function initVentas() {
   
           }
   
+  
+          // ----------------------------------------------------
+          // CANTIDAD
+          // ----------------------------------------------------
   
           const qty =
             row.querySelector(

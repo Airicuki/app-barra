@@ -1,5 +1,4 @@
-import { state } from "../state/state.js";
-
+import { state, session } from "../state/state.js";
 import { els } from "../utils/dom.js";
 
 import {
@@ -8,7 +7,8 @@ import {
   getRanchoTurnos,
   saveRanchoTurno,
   getRanchoComidas,
-  saveRanchoComida
+  saveRanchoComida,
+  deleteRanchoComida
 } from "../services/rancho.service.js";
 
 
@@ -36,237 +36,435 @@ const ranchoRoles = [
 
 
 // ============================================================
+// PERMISOS DEL RANCHO
+// ============================================================
+
+function getCurrentUserRole() {
+
+  return String(
+    session?.role || ""
+  )
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]/g, "");
+
+}
+
+
+// ============================================================
+// SOLO ADMIN
+// ============================================================
+
+function isAdmin() {
+
+  return (
+    getCurrentUserRole() ===
+    "admin"
+  );
+
+}
+
+
+// ============================================================
+// ADMIN O JEFE DE BARRA
+// ============================================================
+
+function isAdminOrJefeBarra() {
+
+  const role =
+    getCurrentUserRole();
+
+  return (
+    role === "admin" ||
+    role === "jefebarra"
+  );
+
+}
+// ============================================================
 // INICIALIZACIÓN
+// ============================================================
+
+// ============================================================
+// INICIALIZACIÓN DEL MÓDULO RANCHO
 // ============================================================
 
 export function initRancho() {
 
-    if (els.ranchoDate) {
-
-      els.ranchoDate.value =
-        els.ranchoDate.value ||
-        els.entryDate?.value ||
-        formatDate(new Date());
+  console.log(
+    "🍽️ Inicializando módulo de Rancho..."
+  );
 
 
-      els.ranchoDate.addEventListener(
-        "change",
-        async () => {
+  // ==========================================================
+  // FECHA DEL RANCHO
+  // ==========================================================
 
-          const loaded =
-            await loadRancho();
+  if (els.ranchoDate) {
+
+    els.ranchoDate.value =
+      els.ranchoDate.value ||
+      els.entryDate?.value ||
+      formatDate(new Date());
 
 
-          if (loaded) {
-            renderRancho();
-          }
+    els.ranchoDate.addEventListener(
+      "change",
+      async () => {
+
+        console.log(
+          "📅 Fecha del Rancho cambiada:",
+          els.ranchoDate.value
+        );
+
+
+        const loaded =
+          await loadRancho();
+
+
+        if (loaded) {
+
+          renderRancho();
 
         }
-      );
 
-    }
+      }
+    );
 
-    // ==========================================================
-    // AÑADIR PERSONA
-    // ==========================================================
-  
-    if (els.personForm) {
-  
-      els.personForm.addEventListener(
-        "submit",
-        addPerson
-      );
-  
-    }
-  
-  
-    // ==========================================================
-    // BOTÓN MOSTRAR FORMULARIO DE PERSONA
-    // ==========================================================
-  
-    const addPersonBtn =
-      document.getElementById(
-        "ranchoAddPersonBtn"
-      );
-  
-    if (addPersonBtn) {
-  
-      addPersonBtn.addEventListener(
-        "click",
-        () => {
-  
-          if (!els.personForm) {
-            return;
-          }
-  
-          els.personForm.classList.remove(
-            "hidden"
-          );
-  
-          els.personName?.focus();
-  
-        }
-      );
-  
-    }
-  
-  
-    // ==========================================================
-    // CANCELAR AÑADIR PERSONA
-    // ==========================================================
-  
-    const cancelPersonBtn =
-      document.getElementById(
-        "ranchoCancelPersonBtn"
-      );
-  
-    if (cancelPersonBtn) {
-  
-      cancelPersonBtn.addEventListener(
-        "click",
-        () => {
-  
-          if (!els.personForm) {
-            return;
-          }
-  
-          els.personForm.reset();
-  
-          els.personForm.classList.add(
-            "hidden"
-          );
-  
-        }
-      );
-  
-    }
-  
-  
-    // ==========================================================
-    // CAMBIOS EN HORARIO
-    // ==========================================================
-  
-    if (els.ranchoScheduleRows) {
-  
-      els.ranchoScheduleRows.addEventListener(
-        "change",
-        updateRanchoSchedule
-      );
-  
-    }
-  
-  
-    // ==========================================================
-    // CAMBIOS EN COMIDAS / CENAS
-    // ==========================================================
-  
-    if (els.ranchoMealRows) {
-  
-      els.ranchoMealRows.addEventListener(
-        "change",
-        updateRanchoMeal
-      );
-  
-    }
-  
-  
-    // ==========================================================
-    // DÍA ANTERIOR
-    // ==========================================================
-  
-    const prevDay =
-      document.getElementById(
-        "ranchoPrevDay"
-      );
-  
-    if (prevDay) {
-  
-      prevDay.addEventListener(
-        "click",
-        () => {
-  
-          changeRanchoDay(-1);
-  
-        }
-      );
-  
-    }
-  
-  
-    // ==========================================================
-    // DÍA SIGUIENTE
-    // ==========================================================
-  
-    const nextDay =
-      document.getElementById(
-        "ranchoNextDay"
-      );
-  
-    if (nextDay) {
-  
-      nextDay.addEventListener(
-        "click",
-        () => {
-  
-          changeRanchoDay(1);
-  
-        }
-      );
-  
-    }
-  
-  
-    // ==========================================================
-    // CAMBIO DE DÍA OPERATIVO PRINCIPAL
-    // ==========================================================
-  
-    if (els.entryDate) {
-  
-      els.entryDate.addEventListener(
-        "change",
-        async () => {
-  
-          const loaded =
-            await loadRancho();
-  
-          if (loaded) {
-            renderRancho();
-          }
-  
-        }
-      );
-  
-    }
-  
   }
 
+
+  // ==========================================================
+  // AÑADIR PERSONA
+  // SOLO ADMIN
+  // ==========================================================
+
+  if (els.personForm) {
+
+    els.personForm.addEventListener(
+      "submit",
+      addPerson
+    );
+
+  }
+
+
+  // ==========================================================
+  // BOTÓN AÑADIR PERSONA
+  // SOLO ADMIN
+  // ==========================================================
+
+  const addPersonBtn =
+    document.getElementById(
+      "ranchoAddPersonBtn"
+    );
+
+
+  if (addPersonBtn) {
+
+    addPersonBtn.addEventListener(
+      "click",
+      () => {
+
+        // ----------------------------------------------------
+        // SEGURIDAD
+        // ----------------------------------------------------
+
+        if (!isAdmin()) {
+
+          console.warn(
+            "🔒 Solo el administrador puede añadir personas."
+          );
+
+          return;
+
+        }
+
+
+        // ----------------------------------------------------
+        // MOSTRAR FORMULARIO
+        // ----------------------------------------------------
+
+        if (!els.personForm) {
+
+          console.warn(
+            "⚠️ No se encontró el formulario de personas."
+          );
+
+          return;
+
+        }
+
+
+        els.personForm.classList.remove(
+          "hidden"
+        );
+
+
+        if (els.personName) {
+
+          els.personName.focus();
+
+        }
+
+      }
+    );
+
+  }
+
+
+  // ==========================================================
+  // CANCELAR AÑADIR PERSONA
+  // ==========================================================
+
+  const cancelPersonBtn =
+    document.getElementById(
+      "ranchoCancelPersonBtn"
+    );
+
+
+  if (cancelPersonBtn) {
+
+    cancelPersonBtn.addEventListener(
+      "click",
+      () => {
+
+        if (!els.personForm) {
+
+          return;
+
+        }
+
+
+        els.personForm.reset();
+
+
+        els.personForm.classList.add(
+          "hidden"
+        );
+
+      }
+    );
+
+  }
+
+
+  // ==========================================================
+  // TURNOS
+  // ==========================================================
+
+  if (els.ranchoScheduleRows) {
+
+    els.ranchoScheduleRows.addEventListener(
+      "change",
+      updateRanchoSchedule
+    );
+
+  }
+
+
+  // ==========================================================
+  // COMIDAS / CENAS
+  //
+  // CHANGE:
+  // - Añadir persona
+  // - Marcar apuntado
+  // - Marcar pagado
+  //
+  // CLICK:
+  // - Papelera
+  // ==========================================================
+
+  if (els.ranchoMealRows) {
+
+    els.ranchoMealRows.addEventListener(
+      "change",
+      updateRanchoMeal
+    );
+
+
+    els.ranchoMealRows.addEventListener(
+      "click",
+      handleRanchoMealClick
+    );
+
+  }
+
+
+  // ==========================================================
+  // DÍA ANTERIOR
+  // ==========================================================
+
+  const prevDay =
+    document.getElementById(
+      "ranchoPrevDay"
+    );
+
+
+  if (prevDay) {
+
+    prevDay.addEventListener(
+      "click",
+      () => {
+
+        changeRanchoDay(-1);
+
+      }
+    );
+
+  }
+
+
+  // ==========================================================
+  // DÍA SIGUIENTE
+  // ==========================================================
+
+  const nextDay =
+    document.getElementById(
+      "ranchoNextDay"
+    );
+
+
+  if (nextDay) {
+
+    nextDay.addEventListener(
+      "click",
+      () => {
+
+        changeRanchoDay(1);
+
+      }
+    );
+
+  }
+
+
+  // ==========================================================
+  // FECHA OPERATIVA
+  // ==========================================================
+
+  if (els.entryDate) {
+
+    els.entryDate.addEventListener(
+      "change",
+      async () => {
+
+        console.log(
+          "📅 Día operativo cambiado:"
+        );
+
+
+        const loaded =
+          await loadRancho();
+
+
+        if (loaded) {
+
+          renderRancho();
+
+        }
+
+      }
+    );
+
+  }
+
+
+  // ==========================================================
+  // ESTADO INICIAL DEL BOTÓN AÑADIR
+  //
+  // Esto es importante porque initRancho() puede ejecutarse
+  // antes de renderRancho().
+  // ==========================================================
+
+  if (addPersonBtn) {
+
+    addPersonBtn.classList.toggle(
+      "hidden",
+      !isAdmin()
+    );
+
+  }
+
+
+  // ==========================================================
+  // ESTADO INICIAL DEL FORMULARIO
+  // ==========================================================
+
+  if (
+    els.personForm &&
+    !isAdmin()
+  ) {
+
+    els.personForm.classList.add(
+      "hidden"
+    );
+
+  }
+
+
+  // ==========================================================
+  // DEBUG DE PERMISOS
+  // ==========================================================
+
+  console.log(
+    "🔐 Permisos Rancho:",
+    {
+      role:
+        getCurrentUserRole(),
+
+      isAdmin:
+        isAdmin(),
+
+      isAdminOrJefeBarra:
+        isAdminOrJefeBarra(),
+
+      puedeAñadirPersonas:
+        isAdmin(),
+
+      puedeEliminarComidas:
+        isAdminOrJefeBarra()
+    }
+  );
+
+
+  console.log(
+    "✅ Módulo de Rancho inicializado"
+  );
+
+}
+
+
+// ============================================================
+// DÍA SELECCIONADO
+// ============================================================
 
 function getSelectedRanchoDay() {
 
-    if (
-      !state.ranchoCurrent ||
-      !state.ranchoCurrent.days?.length
-    ) {
-      return null;
-    }
-  
-    if (
-      state.ranchoCurrent.selectedDay &&
-      state.ranchoCurrent.days.includes(
-        state.ranchoCurrent.selectedDay
-      )
-    ) {
-      return state.ranchoCurrent.selectedDay;
-    }
-  
-    state.ranchoCurrent.selectedDay =
-      state.ranchoCurrent.days[0];
-  
+  if (
+    !state.ranchoCurrent ||
+    !state.ranchoCurrent.days?.length
+  ) {
+    return null;
+  }
+
+  if (
+    state.ranchoCurrent.selectedDay &&
+    state.ranchoCurrent.days.includes(
+      state.ranchoCurrent.selectedDay
+    )
+  ) {
     return state.ranchoCurrent.selectedDay;
   }
 
+  state.ranchoCurrent.selectedDay =
+    state.ranchoCurrent.days[0];
+
+  return state.ranchoCurrent.selectedDay;
+}
+
+
 // ============================================================
-// CARGAR RANCHO DESDE SUPABASE
+// CARGAR RANCHO
 // ============================================================
 
 export async function loadRancho() {
@@ -275,31 +473,20 @@ export async function loadRancho() {
     els.ranchoDate?.value ||
     els.entryDate?.value;
 
-
   if (!date) {
     return false;
   }
 
-
   try {
-
-    // --------------------------------------------------------
-    // Calcular semana
-    // --------------------------------------------------------
 
     const {
       start,
       days
     } =
-      ranchoWeekBounds(
-        date
-      );
-
+      ranchoWeekBounds(date);
 
     const end =
-      days[
-        days.length - 1
-      ];
+      days[days.length - 1];
 
 
     // --------------------------------------------------------
@@ -312,7 +499,6 @@ export async function loadRancho() {
     } =
       await getRanchoPersonas();
 
-
     if (personasError) {
 
       console.error(
@@ -323,15 +509,12 @@ export async function loadRancho() {
       return false;
     }
 
-
     state.ranchoPersonas =
       personas || [];
 
-
     state.people =
       state.ranchoPersonas.map(
-        (person) =>
-          person.nombre
+        person => person.nombre
       );
 
 
@@ -347,7 +530,6 @@ export async function loadRancho() {
         start,
         end
       );
-
 
     if (turnosError) {
 
@@ -373,7 +555,6 @@ export async function loadRancho() {
         end
       );
 
-
     if (comidasError) {
 
       console.error(
@@ -386,36 +567,31 @@ export async function loadRancho() {
 
 
     // --------------------------------------------------------
-    // CREAR ESTADO TEMPORAL
+    // ESTADO
     // --------------------------------------------------------
 
     state.ranchoCurrent = {
 
-        start,
+      start,
 
-        days,
+      days,
 
-        selectedDay: date,
+      selectedDay: date,
 
-        schedule: {},
+      schedule: {},
 
-        meals: {}
+      meals: {}
 
     };
 
 
     days.forEach(
-      (day) => {
+      day => {
 
-        state.ranchoCurrent.schedule[
-          day
-        ] =
+        state.ranchoCurrent.schedule[day] =
           normalizeScheduleDay();
 
-
-        state.ranchoCurrent.meals[
-          day
-        ] =
+        state.ranchoCurrent.meals[day] =
           normalizeMealDay();
 
       }
@@ -423,27 +599,24 @@ export async function loadRancho() {
 
 
     // --------------------------------------------------------
-    // CARGAR TURNOS
+    // TURNOS
     // --------------------------------------------------------
 
     (turnos || []).forEach(
-      (turno) => {
+      turno => {
 
         const day =
           state.ranchoCurrent.schedule[
             turno.fecha
           ];
 
-
         if (!day) {
           return;
         }
 
-
         const personName =
           turno.rancho_personas?.nombre ||
           "";
-
 
         if (
           day[turno.rol] &&
@@ -464,35 +637,29 @@ export async function loadRancho() {
 
 
     // --------------------------------------------------------
-    // CARGAR COMIDAS
+    // COMIDAS
     // --------------------------------------------------------
 
     (comidas || []).forEach(
-      (comida) => {
+      comida => {
 
         const day =
           state.ranchoCurrent.meals[
             comida.fecha
           ];
 
-
         if (!day) {
           return;
         }
 
-
         const personName =
           comida.rancho_personas?.nombre;
-
 
         if (!personName) {
           return;
         }
 
-
-        day[
-          comida.tipo
-        ].people[
+        day[comida.tipo].people[
           personName
         ] = {
 
@@ -515,104 +682,34 @@ export async function loadRancho() {
     );
 
 
-    // --------------------------------------------------------
-    // PERSONAS DE TURNO
-    // Se añaden automáticamente a comida/cena
-    // --------------------------------------------------------
-
-    days.forEach(
-      (day) => {
-
-        const scheduled =
-          scheduledPeople(
-            state.ranchoCurrent.schedule[
-              day
-            ]
-          );
-
-
-        [
-          "comida",
-          "cena"
-        ].forEach(
-          (meal) => {
-
-            scheduled.forEach(
-              (personName) => {
-
-                if (
-                  state.ranchoCurrent
-                    .meals[
-                      day
-                    ][
-                      meal
-                    ].people[
-                      personName
-                    ]
-                ) {
-                  return;
-                }
-
-
-                const person =
-                  findPersonByName(
-                    personName
-                  );
-
-
-                if (!person) {
-                  return;
-                }
-
-
-                state.ranchoCurrent
-                  .meals[
-                    day
-                  ][
-                    meal
-                  ].people[
-                    personName
-                  ] = {
-
-                    signed: true,
-
-                    paid: true,
-
-                    personaId:
-                      person.id
-
-                  };
-
-              }
-            );
-
-          }
-        );
-
-      }
-    );
+    /*
+     * IMPORTANTE:
+     *
+     * NO añadimos aquí automáticamente a las personas
+     * que tienen turno.
+     *
+     * Si lo hiciéramos, al borrar una persona de comida/cena
+     * volvería a aparecer al recargar la aplicación.
+     *
+     * Ahora se añade automáticamente cuando se asigna
+     * una persona al turno, dentro de updateRanchoSchedule().
+     */
 
 
     console.log(
       "✅ Rancho cargado desde Supabase:",
       {
-        semana:
-          start,
-
+        semana: start,
         personas:
           personas?.length || 0,
-
         turnos:
           turnos?.length || 0,
-
         comidas:
           comidas?.length || 0
       }
     );
 
-
     return true;
-
 
   } catch (error) {
 
@@ -634,81 +731,98 @@ export async function loadRancho() {
 
 export function renderRancho() {
 
-    if (!state.ranchoCurrent) {
-      return;
-    }
-  
-  
-    const selectedDay =
-      getSelectedRanchoDay();
-  
-  
-    if (!selectedDay) {
-      return;
-    }
-  
-  
-    renderRanchoDaySelector();
-  
-    renderRanchoWeekDays();
-  
-    renderPeople();
-  
-    renderRanchoSchedule();
-  
-    renderRanchoMeals();
-  
+  if (!state.ranchoCurrent) {
+    return;
   }
+
+  const selectedDay =
+    getSelectedRanchoDay();
+
+  if (!selectedDay) {
+    return;
+  }
+
+  renderRanchoDaySelector();
+  renderRanchoWeekDays();
+  renderPeople();
+  renderRanchoSchedule();
+  renderRanchoMeals();
+
+}
 
 
 // ============================================================
-// RENDER PERSONAS
+// PERSONAS
 // ============================================================
 
 function renderPeople() {
 
-    if (!els.peopleList) {
-      return;
-    }
-  
-  
-    els.peopleList.replaceChildren();
-  
-  
-    const people =
-      state.ranchoPersonas || [];
-  
-  
-    people.forEach(
-      (person) => {
-  
-        const chip =
-          document.createElement(
-            "span"
-          );
-  
-  
-        chip.className =
-          "rancho-person-chip";
-  
-  
-        chip.textContent =
-          person.nombre;
-  
-  
-        els.peopleList.append(
-          chip
+  if (!els.peopleList) {
+    return;
+  }
+
+  els.peopleList.replaceChildren();
+
+  const people =
+    state.ranchoPersonas || [];
+
+  people.forEach(
+    person => {
+
+      const chip =
+        document.createElement(
+          "span"
         );
-  
-      }
+
+      chip.className =
+        "rancho-person-chip";
+
+      chip.textContent =
+        person.nombre;
+
+      els.peopleList.append(
+        chip
+      );
+
+    }
+  );
+
+
+  // ----------------------------------------------------------
+  // SOLO ADMIN PUEDE AÑADIR PERSONAS
+  // ----------------------------------------------------------
+
+  const addPersonBtn =
+    document.getElementById(
+      "ranchoAddPersonBtn"
     );
-  
+
+  if (addPersonBtn) {
+
+    addPersonBtn.classList.toggle(
+      "hidden",
+      !isAdmin()
+    );
+
   }
 
 
+  if (
+    els.personForm &&
+    !isAdmin()
+  ) {
+
+    els.personForm.classList.add(
+      "hidden"
+    );
+
+  }
+
+}
+
+
 // ============================================================
-// CALCULAR SEMANA
-// SÁBADO → VIERNES
+// SEMANA
 // ============================================================
 
 function ranchoWeekBounds(
@@ -720,22 +834,16 @@ function ranchoWeekBounds(
       `${dateValue}T12:00:00`
     );
 
-
   const day =
     date.getDay();
 
-
   const saturday =
-    new Date(
-      date
-    );
-
+    new Date(date);
 
   saturday.setDate(
     date.getDate() -
     ((day + 1) % 7)
   );
-
 
   const days =
     Array.from(
@@ -745,31 +853,22 @@ function ranchoWeekBounds(
       (_, index) => {
 
         const item =
-          new Date(
-            saturday
-          );
-
+          new Date(saturday);
 
         item.setDate(
           saturday.getDate() +
           index
         );
 
-
-        return formatDate(
-          item
-        );
+        return formatDate(item);
 
       }
     );
 
-
   return {
 
     start:
-      formatDate(
-        saturday
-      ),
+      formatDate(saturday),
 
     days
 
@@ -835,161 +934,130 @@ function normalizeMealDay() {
 
 function renderRanchoSchedule() {
 
-    if (!els.ranchoScheduleRows) {
-      return;
-    }
-  
-  
-    const day =
-      getSelectedRanchoDay();
-  
-  
-    if (!day) {
-      return;
-    }
-  
-  
-    const schedule =
-      state.ranchoCurrent.schedule[
-        day
-      ];
-  
-  
-    if (!schedule) {
-      return;
-    }
-  
-  
-    els.ranchoScheduleRows.replaceChildren();
-  
-  
-    ranchoRoles.forEach(
-      (role) => {
-  
-        const card =
-          document.createElement(
-            "article"
-          );
-  
-  
-        card.className =
-          "rancho-shift-card";
-  
-  
-        // ======================================================
-        // ROL
-        // ======================================================
-  
-        const roleElement =
-          document.createElement(
-            "div"
-          );
-  
-  
-        roleElement.className =
-          "rancho-shift-role";
-  
-  
-        const title =
-          document.createElement(
-            "strong"
-          );
-  
-  
-        title.textContent =
-          role.label;
-  
-  
-        const subtitle =
-          document.createElement(
-            "span"
-          );
-  
-  
-        subtitle.textContent =
-          role.max === 1
-            ? "1 persona"
-            : `Hasta ${role.max} personas`;
-  
-  
-        roleElement.append(
-          title,
-          subtitle
-        );
-  
-  
-        // ======================================================
-        // PERSONAS
-        // ======================================================
-  
-        const people =
-          document.createElement(
-            "div"
-          );
-  
-  
-        people.className =
-          "rancho-shift-people";
-  
-  
-        for (
-          let index = 0;
-          index < role.max;
-          index++
-        ) {
-  
-          const currentName =
-            schedule[
-              role.key
-            ]?.[
-              index
-            ] || "";
-  
-  
-          const select =
-            personSelectByName(
-              currentName
-            );
-  
-  
-          select.classList.add(
-            "rancho-person-select"
-          );
-  
-  
-          select.dataset.scheduleDate =
-            day;
-  
-  
-          select.dataset.scheduleRole =
-            role.key;
-  
-  
-          select.dataset.scheduleIndex =
-            index;
-  
-  
-          people.append(
-            select
-          );
-  
-        }
-  
-  
-        card.append(
-          roleElement,
-          people
-        );
-  
-  
-        els.ranchoScheduleRows.append(
-          card
-        );
-  
-      }
-    );
-  
+  if (!els.ranchoScheduleRows) {
+    return;
   }
+
+  const day =
+    getSelectedRanchoDay();
+
+  if (!day) {
+    return;
+  }
+
+  const schedule =
+    state.ranchoCurrent.schedule[
+      day
+    ];
+
+  if (!schedule) {
+    return;
+  }
+
+  els.ranchoScheduleRows.replaceChildren();
+
+  ranchoRoles.forEach(
+    role => {
+
+      const card =
+        document.createElement(
+          "article"
+        );
+
+      card.className =
+        "rancho-shift-card";
+
+
+      const roleElement =
+        document.createElement(
+          "div"
+        );
+
+      roleElement.className =
+        "rancho-shift-role";
+
+      const title =
+        document.createElement(
+          "strong"
+        );
+
+      title.textContent =
+        role.label;
+
+      const subtitle =
+        document.createElement(
+          "span"
+        );
+
+      subtitle.textContent =
+        role.max === 1
+          ? "1 persona"
+          : `Hasta ${role.max} personas`;
+
+      roleElement.append(
+        title,
+        subtitle
+      );
+
+
+      const people =
+        document.createElement(
+          "div"
+        );
+
+      people.className =
+        "rancho-shift-people";
+
+
+      for (
+        let index = 0;
+        index < role.max;
+        index++
+      ) {
+
+        const currentName =
+          schedule[role.key]?.[
+            index
+          ] || "";
+
+        const select =
+          personSelectByName(
+            currentName
+          );
+
+        select.classList.add(
+          "rancho-person-select"
+        );
+
+        select.dataset.scheduleDate =
+          day;
+
+        select.dataset.scheduleRole =
+          role.key;
+
+        select.dataset.scheduleIndex =
+          index;
+
+        people.append(
+          select
+        );
+
+      }
+
+
+      card.append(
+        roleElement,
+        people
+      );
+
+      els.ranchoScheduleRows.append(
+        card
+      );
+
+    }
+  );
+
+}
 
 
 // ============================================================
@@ -998,326 +1066,349 @@ function renderRanchoSchedule() {
 
 function renderRanchoMeals() {
 
-    if (!els.ranchoMealRows) {
-      return;
-    }
-  
-  
-    const day =
-      getSelectedRanchoDay();
-  
-  
-    if (!day) {
-      return;
-    }
-  
-  
-    const schedule =
-      state.ranchoCurrent.schedule[
-        day
-      ];
-  
-  
-    const meals =
-      state.ranchoCurrent.meals[
-        day
-      ];
-  
-  
-    if (!schedule || !meals) {
-      return;
-    }
-  
-  
-    els.ranchoMealRows.replaceChildren();
-  
-  
-    [
-      "comida",
-      "cena"
-    ].forEach(
-      (meal) => {
-  
-        const card =
-          document.createElement(
-            "article"
-          );
-  
-  
-        card.className =
-          "rancho-meal-card";
-  
-  
-        // ======================================================
-        // CABECERA
-        // ======================================================
-  
-        const header =
-          document.createElement(
-            "div"
-          );
-  
-  
-        header.className =
-          "rancho-meal-header";
-  
-  
-        const title =
-          document.createElement(
-            "h4"
-          );
-  
-  
-        title.textContent =
-          meal === "comida"
-            ? "🍽️ Comida"
-            : "🌙 Cena";
-  
-  
-        // ======================================================
-        // SELECT PARA AÑADIR PERSONA
-        // ======================================================
-  
-        const addSelect =
-          personSelectById("");
-  
-  
-        addSelect.classList.add(
-          "rancho-meal-add"
-        );
-  
-  
-        addSelect.dataset.mealAddDate =
-          day;
-  
-  
-        addSelect.dataset.mealAddType =
-          meal;
-  
-  
-        header.append(
-          title,
-          addSelect
-        );
-  
-  
-        // ======================================================
-        // PERSONAS
-        // ======================================================
-  
-        const peopleContainer =
-          document.createElement(
-            "div"
-          );
-  
-  
-        peopleContainer.className =
-          "rancho-meal-people";
-  
-  
-        const people =
-          getMealPeople(
-            schedule,
-            meals[meal]
-          );
-  
-  
-        if (
-          people.length === 0
-        ) {
-  
-          const empty =
-            document.createElement(
-              "p"
-            );
-  
-  
-          empty.className =
-            "muted";
-  
-  
-          empty.textContent =
-            "Todavía no hay nadie apuntado.";
-  
-  
-          peopleContainer.append(
-            empty
-          );
-  
-        }
-  
-  
-        people.forEach(
-          (personName) => {
-  
-            const status =
-              meals[
-                meal
-              ].people[
-                personName
-              ] || {
-                signed: false,
-                paid: false
-              };
-  
-  
-            const row =
-              document.createElement(
-                "div"
-              );
-  
-  
-            row.className =
-              "rancho-meal-person";
-  
-  
-            // ==================================================
-            // NOMBRE
-            // ==================================================
-  
-            const name =
-              document.createElement(
-                "span"
-              );
-  
-  
-            name.className =
-              "rancho-meal-person-name";
-  
-  
-            name.textContent =
-              personName;
-  
-  
-            // ==================================================
-            // APUNTADO
-            // ==================================================
-  
-            const signedLabel =
-              document.createElement(
-                "label"
-              );
-  
-  
-            signedLabel.className =
-              "rancho-checkbox";
-  
-  
-            const signed =
-              document.createElement(
-                "input"
-              );
-  
-  
-            signed.type =
-              "checkbox";
-  
-  
-            signed.checked =
-              Boolean(
-                status.signed
-              );
-  
-  
-            signed.dataset.mealSigned =
-              personName;
-  
-  
-            signed.dataset.mealDate =
-              day;
-  
-  
-            signed.dataset.mealType =
-              meal;
-  
-  
-            signedLabel.append(
-              signed,
-              document.createTextNode(
-                "Apuntado"
-              )
-            );
-  
-  
-            // ==================================================
-            // PAGADO
-            // ==================================================
-  
-            const paidLabel =
-              document.createElement(
-                "label"
-              );
-  
-  
-            paidLabel.className =
-              "rancho-checkbox";
-  
-  
-            const paid =
-              document.createElement(
-                "input"
-              );
-  
-  
-            paid.type =
-              "checkbox";
-  
-  
-            paid.checked =
-              Boolean(
-                status.paid
-              );
-  
-  
-            paid.dataset.mealPaid =
-              personName;
-  
-  
-            paid.dataset.mealDate =
-              day;
-  
-  
-            paid.dataset.mealType =
-              meal;
-  
-  
-            paidLabel.append(
-              paid,
-              document.createTextNode(
-                "💶 Pagado"
-              )
-            );
-  
-  
-            row.append(
-              name,
-              signedLabel,
-              paidLabel
-            );
-  
-  
-            peopleContainer.append(
-              row
-            );
-  
-          }
-        );
-  
-  
-        card.append(
-          header,
-          peopleContainer
-        );
-  
-  
-        els.ranchoMealRows.append(
-          card
-        );
-  
-      }
-    );
-  
+  if (!els.ranchoMealRows) {
+    return;
   }
+
+  const day =
+    getSelectedRanchoDay();
+
+  if (!day) {
+    return;
+  }
+
+  const schedule =
+    state.ranchoCurrent.schedule[
+      day
+    ];
+
+  const meals =
+    state.ranchoCurrent.meals[
+      day
+    ];
+
+  if (!schedule || !meals) {
+    return;
+  }
+
+  els.ranchoMealRows.replaceChildren();
+
+
+  [
+    "comida",
+    "cena"
+  ].forEach(
+    meal => {
+
+      const card =
+        document.createElement(
+          "article"
+        );
+
+      card.className =
+        "rancho-meal-card";
+
+
+      // --------------------------------------------------------
+      // CABECERA
+      // --------------------------------------------------------
+
+      const header =
+        document.createElement(
+          "div"
+        );
+
+      header.className =
+        "rancho-meal-header";
+
+      const title =
+        document.createElement(
+          "h4"
+        );
+
+      title.textContent =
+        meal === "comida"
+          ? "🍽️ Comida"
+          : "🌙 Cena";
+
+
+      // --------------------------------------------------------
+      // AÑADIR PERSONA
+      // --------------------------------------------------------
+
+      const addSelect =
+        personSelectById("");
+
+      addSelect.classList.add(
+        "rancho-meal-add"
+      );
+
+      addSelect.dataset.mealAddDate =
+        day;
+
+      addSelect.dataset.mealAddType =
+        meal;
+
+      header.append(
+        title,
+        addSelect
+      );
+
+
+      // --------------------------------------------------------
+      // PERSONAS
+      // --------------------------------------------------------
+
+      const peopleContainer =
+        document.createElement(
+          "div"
+        );
+
+      peopleContainer.className =
+        "rancho-meal-people";
+
+
+      const people =
+        getMealPeople(
+          schedule,
+          meals[meal]
+        );
+
+
+      if (!people.length) {
+
+        const empty =
+          document.createElement(
+            "p"
+          );
+
+        empty.className =
+          "muted";
+
+        empty.textContent =
+          "Todavía no hay nadie apuntado.";
+
+        peopleContainer.append(
+          empty
+        );
+
+      }
+
+
+      people.forEach(
+        personName => {
+
+          const status =
+            meals[meal].people[
+              personName
+            ] || {
+              signed: false,
+              paid: false
+            };
+
+
+          const row =
+            document.createElement(
+              "div"
+            );
+
+          row.className =
+            "rancho-meal-person";
+
+
+          // ------------------------------------------------------
+          // NOMBRE
+          // ------------------------------------------------------
+
+          const name =
+            document.createElement(
+              "span"
+            );
+
+          name.className =
+            "rancho-meal-person-name";
+
+          name.textContent =
+            personName;
+
+
+          // ------------------------------------------------------
+          // APUNTADO
+          // ------------------------------------------------------
+
+          const signedLabel =
+            document.createElement(
+              "label"
+            );
+
+          signedLabel.className =
+            "rancho-checkbox";
+
+          const signed =
+            document.createElement(
+              "input"
+            );
+
+          signed.type =
+            "checkbox";
+
+          signed.checked =
+            Boolean(
+              status.signed
+            );
+
+          signed.dataset.mealSigned =
+            personName;
+
+          signed.dataset.mealDate =
+            day;
+
+          signed.dataset.mealType =
+            meal;
+
+          signedLabel.append(
+            signed,
+            document.createTextNode(
+              "Apuntado"
+            )
+          );
+
+
+          // ------------------------------------------------------
+          // PAGADO
+          // ------------------------------------------------------
+
+          const paidLabel =
+            document.createElement(
+              "label"
+            );
+
+          paidLabel.className =
+            "rancho-checkbox";
+
+          const paid =
+            document.createElement(
+              "input"
+            );
+
+          paid.type =
+            "checkbox";
+
+          paid.checked =
+            Boolean(
+              status.paid
+            );
+
+          paid.dataset.mealPaid =
+            personName;
+
+          paid.dataset.mealDate =
+            day;
+
+          paid.dataset.mealType =
+            meal;
+
+          paidLabel.append(
+            paid,
+            document.createTextNode(
+              "💶 Pagado"
+            )
+          );
+
+
+          row.append(
+            name,
+            signedLabel,
+            paidLabel
+          );
+
+
+          // ------------------------------------------------------
+          // PAPELERA
+          // SOLO ADMIN + JEFE DE BARRA
+          // ------------------------------------------------------
+
+          if (
+            isAdminOrJefeBarra()
+          ) {
+
+            const deleteButton =
+              document.createElement(
+                "button"
+              );
+
+            deleteButton.type =
+              "button";
+
+            deleteButton.className =
+              "rancho-meal-delete";
+
+            deleteButton.dataset.mealDelete =
+              "true";
+
+            deleteButton.dataset.mealDate =
+              day;
+
+            deleteButton.dataset.mealType =
+              meal;
+
+            deleteButton.dataset.personId =
+              status.personaId || "";
+
+            deleteButton.setAttribute(
+              "aria-label",
+              `Eliminar a ${personName} de ${
+                meal === "comida"
+                  ? "la comida"
+                  : "la cena"
+              }`
+            );
+
+            deleteButton.title =
+              "Quitar de comida/cena";
+
+            deleteButton.innerHTML = `
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M3 6h18"></path>
+                <path d="M8 6V4h8v2"></path>
+                <path d="M19 6l-1 15H6L5 6"></path>
+                <path d="M10 11v6"></path>
+                <path d="M14 11v6"></path>
+              </svg>
+            `;
+
+            row.append(
+              deleteButton
+            );
+
+          }
+
+
+          peopleContainer.append(
+            row
+          );
+
+        }
+      );
+
+
+      card.append(
+        header,
+        peopleContainer
+      );
+
+      els.ranchoMealRows.append(
+        card
+      );
+
+    }
+  );
+
+}
+
 
 // ============================================================
 // SELECT POR NOMBRE
@@ -1332,33 +1423,24 @@ function personSelectByName(
       "select"
     );
 
-
-  addEmptyOption(
-    select
-  );
-
+  addEmptyOption(select);
 
   state.ranchoPersonas.forEach(
-    (person) => {
+    person => {
 
       const option =
         document.createElement(
           "option"
         );
 
-
       option.value =
         person.id;
-
 
       option.textContent =
         person.nombre;
 
-
       option.selected =
-        person.nombre ===
-        value;
-
+        person.nombre === value;
 
       select.append(
         option
@@ -1366,7 +1448,6 @@ function personSelectByName(
 
     }
   );
-
 
   return select;
 
@@ -1386,33 +1467,24 @@ function personSelectById(
       "select"
     );
 
-
-  addEmptyOption(
-    select
-  );
-
+  addEmptyOption(select);
 
   state.ranchoPersonas.forEach(
-    (person) => {
+    person => {
 
       const option =
         document.createElement(
           "option"
         );
 
-
       option.value =
         person.id;
-
 
       option.textContent =
         person.nombre;
 
-
       option.selected =
-        person.id ===
-        value;
-
+        person.id === value;
 
       select.append(
         option
@@ -1420,7 +1492,6 @@ function personSelectById(
 
     }
   );
-
 
   return select;
 
@@ -1440,14 +1511,11 @@ function addEmptyOption(
       "option"
     );
 
-
   option.value =
     "";
 
-
   option.textContent =
     "Seleccionar";
-
 
   select.append(
     option
@@ -1466,7 +1534,7 @@ function scheduledPeople(
 
   return ranchoRoles
     .flatMap(
-      (role) =>
+      role =>
         scheduleDay[
           role.key
         ] || []
@@ -1500,12 +1568,11 @@ function getMealPeople(
       scheduleDay
     );
 
-
   return Object.keys(
     mealData.people
   )
     .filter(
-      (person) =>
+      person =>
         state.people.includes(
           person
         ) ||
@@ -1517,15 +1584,10 @@ function getMealPeople(
       (a, b) => {
 
         const scheduledA =
-          scheduled.includes(
-            a
-          );
+          scheduled.includes(a);
 
         const scheduledB =
-          scheduled.includes(
-            b
-          );
-
+          scheduled.includes(b);
 
         if (
           scheduledA !==
@@ -1536,7 +1598,6 @@ function getMealPeople(
             scheduledA;
 
         }
-
 
         return a.localeCompare(
           b,
@@ -1560,9 +1621,22 @@ async function addPerson(
   event.preventDefault();
 
 
+  // ----------------------------------------------------------
+  // SEGURIDAD: SOLO ADMIN
+  // ----------------------------------------------------------
+
+  if (!isAdmin()) {
+
+    console.warn(
+      "🔒 Solo el administrador puede añadir personas al Rancho."
+    );
+
+    return;
+  }
+
+
   const name =
     els.personName.value.trim();
-
 
   if (!name) {
     return;
@@ -1571,11 +1645,10 @@ async function addPerson(
 
   const exists =
     state.ranchoPersonas.some(
-      (person) =>
+      person =>
         person.nombre.toLowerCase() ===
         name.toLowerCase()
     );
-
 
   if (exists) {
 
@@ -1597,7 +1670,6 @@ async function addPerson(
         name
       );
 
-
     if (error) {
 
       console.error(
@@ -1605,11 +1677,9 @@ async function addPerson(
         error
       );
 
-
       alert(
         "No se ha podido crear la persona."
       );
-
 
       return;
     }
@@ -1619,7 +1689,6 @@ async function addPerson(
       data
     );
 
-
     state.ranchoPersonas.sort(
       (a, b) =>
         a.nombre.localeCompare(
@@ -1628,19 +1697,18 @@ async function addPerson(
         )
     );
 
-
     state.people =
       state.ranchoPersonas.map(
-        (person) =>
+        person =>
           person.nombre
       );
 
 
     els.personForm.reset();
-    
+
     els.personForm.classList.add(
-        "hidden"
-      );
+      "hidden"
+    );
 
 
     renderRancho();
@@ -1651,14 +1719,12 @@ async function addPerson(
       data
     );
 
-
   } catch (error) {
 
     console.error(
       "❌ Error inesperado creando persona:",
       error
     );
-
 
     alert(
       "Ha ocurrido un error al crear la persona."
@@ -1681,7 +1747,6 @@ async function updateRanchoSchedule(
     event.target.closest(
       "[data-schedule-date]"
     );
-
 
   if (!select) {
     return;
@@ -1732,16 +1797,12 @@ async function updateRanchoSchedule(
         error
       );
 
-
       alert(
         "No se ha podido guardar el turno."
       );
 
-
       await loadRancho();
-
       renderRancho();
-
 
       return;
     }
@@ -1752,8 +1813,10 @@ async function updateRanchoSchedule(
     );
 
 
-    // Al asignar a alguien a un turno, se le añade a comida y
-    // cena con los dos controles marcados automáticamente.
+    // --------------------------------------------------------
+    // PERSONA ASIGNADA AL TURNO
+    // --------------------------------------------------------
+
     if (select.value) {
 
       const mealResults =
@@ -1762,13 +1825,23 @@ async function updateRanchoSchedule(
             "comida",
             "cena"
           ].map(
-            (tipo) =>
+            tipo =>
               saveRanchoComida({
-                fecha: scheduleDate,
+
+                fecha:
+                  scheduleDate,
+
                 tipo,
-                personaId: select.value,
-                apuntado: true,
-                pagado: true
+
+                personaId:
+                  select.value,
+
+                apuntado:
+                  true,
+
+                pagado:
+                  true
+
               })
           )
         );
@@ -1776,7 +1849,8 @@ async function updateRanchoSchedule(
 
       const mealError =
         mealResults.find(
-          (result) => result.error
+          result =>
+            result.error
         )?.error;
 
 
@@ -1786,7 +1860,6 @@ async function updateRanchoSchedule(
           "❌ Error actualizando comidas del turno:",
           mealError
         );
-
 
         alert(
           "El turno se guardó, pero no se pudieron actualizar sus comidas."
@@ -1798,7 +1871,6 @@ async function updateRanchoSchedule(
 
 
     await loadRancho();
-
     renderRancho();
 
 
@@ -1809,11 +1881,9 @@ async function updateRanchoSchedule(
       error
     );
 
-
     alert(
       "Ha ocurrido un error al guardar el turno."
     );
-
 
   } finally {
 
@@ -1842,7 +1912,6 @@ async function updateRanchoMeal(
       "[data-meal-add-date]"
     );
 
-
   if (
     addSelect &&
     addSelect.value
@@ -1859,7 +1928,6 @@ async function updateRanchoMeal(
       findPersonById(
         addSelect.value
       );
-
 
     if (!person) {
       return;
@@ -1902,11 +1970,9 @@ async function updateRanchoMeal(
           error
         );
 
-
         alert(
           "No se ha podido añadir la persona."
         );
-
 
         return;
       }
@@ -1918,22 +1984,19 @@ async function updateRanchoMeal(
 
 
       await loadRancho();
-
       renderRancho();
 
 
     } catch (error) {
 
       console.error(
-        "❌ Error inesperado añadiendo persona:",
+        "❌ Error inesperado añadiendo la persona:",
         error
       );
-
 
       alert(
         "Ha ocurrido un error al añadir la persona."
       );
-
 
     } finally {
 
@@ -1957,7 +2020,6 @@ async function updateRanchoMeal(
       "[data-meal-signed], [data-meal-paid]"
     );
 
-
   if (!checkbox) {
     return;
   }
@@ -1967,10 +2029,8 @@ async function updateRanchoMeal(
     checkbox.dataset.mealSigned ||
     checkbox.dataset.mealPaid;
 
-
   const date =
     checkbox.dataset.mealDate;
-
 
   const meal =
     checkbox.dataset.mealType;
@@ -1981,7 +2041,6 @@ async function updateRanchoMeal(
       personName
     );
 
-
   if (!person) {
 
     console.error(
@@ -1989,20 +2048,16 @@ async function updateRanchoMeal(
       personName
     );
 
-
     return;
   }
 
 
   const current =
     state.ranchoCurrent
-      ?.meals[
-        date
-      ]?.[
-        meal
-      ]?.people[
-        personName
-      ] || {
+      ?.meals[date]
+      ?.[meal]
+      ?.people[personName]
+      || {
 
         signed:
           true,
@@ -2017,7 +2072,6 @@ async function updateRanchoMeal(
     checkbox.dataset.mealSigned
       ? checkbox.checked
       : current.signed;
-
 
   const newPaid =
     checkbox.dataset.mealPaid
@@ -2062,11 +2116,9 @@ async function updateRanchoMeal(
         error
       );
 
-
       alert(
         "No se ha podido actualizar la comida."
       );
-
 
       return;
     }
@@ -2079,7 +2131,6 @@ async function updateRanchoMeal(
 
 
     await loadRancho();
-
     renderRancho();
 
 
@@ -2090,15 +2141,162 @@ async function updateRanchoMeal(
       error
     );
 
-
     alert(
       "Ha ocurrido un error al actualizar la comida."
     );
 
-
   } finally {
 
     checkbox.disabled =
+      false;
+
+  }
+
+}
+
+
+// ============================================================
+// ELIMINAR PERSONA DE COMIDA / CENA
+// ============================================================
+
+async function handleRanchoMealClick(
+  event
+) {
+
+  const deleteButton =
+    event.target.closest(
+      "[data-meal-delete]"
+    );
+
+  if (!deleteButton) {
+    return;
+  }
+
+
+  // ----------------------------------------------------------
+  // SEGURIDAD
+  // ----------------------------------------------------------
+
+  if (!isAdminOrJefeBarra()) {
+
+    return;
+
+  }
+
+
+  const {
+    mealDate,
+    mealType,
+    personId
+  } =
+    deleteButton.dataset;
+
+
+  if (
+    !mealDate ||
+    !mealType ||
+    !personId
+  ) {
+
+    console.error(
+      "❌ Datos incompletos para eliminar persona de comida/cena."
+    );
+
+    return;
+  }
+
+
+  const person =
+    findPersonById(
+      personId
+    );
+
+  const personName =
+    person?.nombre ||
+    "esta persona";
+
+
+  const mealLabel =
+    mealType === "comida"
+      ? "la comida"
+      : "la cena";
+
+
+  const confirmed =
+    window.confirm(
+      `¿Quieres quitar a ${personName} de ${mealLabel}?`
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  try {
+
+    deleteButton.disabled =
+      true;
+
+
+    const {
+      error
+    } =
+      await deleteRanchoComida(
+        mealDate,
+        mealType,
+        personId
+      );
+
+
+    if (error) {
+
+      console.error(
+        "❌ Error eliminando persona de comida/cena:",
+        error
+      );
+
+      alert(
+        "No se ha podido quitar a la persona."
+      );
+
+      return;
+    }
+
+
+    console.log(
+      "✅ Persona eliminada de comida/cena:",
+      {
+        fecha:
+          mealDate,
+
+        tipo:
+          mealType,
+
+        personaId:
+          personId
+      }
+    );
+
+
+    await loadRancho();
+    renderRancho();
+
+
+  } catch (error) {
+
+    console.error(
+      "❌ Error inesperado eliminando persona:",
+      error
+    );
+
+    alert(
+      "Ha ocurrido un error al quitar a la persona."
+    );
+
+  } finally {
+
+    deleteButton.disabled =
       false;
 
   }
@@ -2115,9 +2313,8 @@ function findPersonByName(
 ) {
 
   return state.ranchoPersonas.find(
-    (person) =>
-      person.nombre ===
-      name
+    person =>
+      person.nombre === name
   );
 
 }
@@ -2132,16 +2329,15 @@ function findPersonById(
 ) {
 
   return state.ranchoPersonas.find(
-    (person) =>
-      person.id ===
-      id
+    person =>
+      person.id === id
   );
 
 }
 
 
 // ============================================================
-// FORMATEAR FECHA
+// FECHA
 // ============================================================
 
 function formatDate(
@@ -2159,7 +2355,7 @@ function formatDate(
 
 
 // ============================================================
-// ETIQUETA DE FECHA
+// ETIQUETA FECHA
 // ============================================================
 
 function dateLabel(
@@ -2186,224 +2382,283 @@ function dateLabel(
 
 }
 
+
+// ============================================================
+// SELECTOR DE DÍA
+// ============================================================
+
 function renderRanchoDaySelector() {
 
-    const day =
-      getSelectedRanchoDay();
-  
-  
-    if (!day) {
-      return;
-    }
-  
-  
-    const date =
-      new Date(
-        `${day}T12:00:00`
-      );
-  
-  
-    const name =
-      new Intl.DateTimeFormat(
-        "es-ES",
-        {
-          weekday: "long"
-        }
-      ).format(date);
-  
-  
-    const shortDate =
-      new Intl.DateTimeFormat(
-        "es-ES",
-        {
-          day: "2-digit",
-          month: "short"
-        }
-      )
-        .format(date)
-        .replace(".", "");
-  
-  
-    const nameEl =
-      document.getElementById(
-        "ranchoCurrentDayName"
-      );
-  
-  
-    const dateEl =
-      document.getElementById(
-        "ranchoCurrentDayDate"
-      );
-  
-  
-    if (nameEl) {
-  
-      nameEl.textContent =
-        name
-          .charAt(0)
-          .toUpperCase() +
-        name.slice(1);
-  
-    }
-  
-  
-    if (dateEl) {
-  
-      dateEl.textContent =
-        shortDate.toUpperCase();
-  
-    }
-  
-  
-    const prevBtn =
-      document.getElementById(
-        "ranchoPrevDay"
-      );
-  
-  
-    const nextBtn =
-      document.getElementById(
-        "ranchoNextDay"
-      );
-  
-  
-    const index =
-      state.ranchoCurrent.days.indexOf(
-        day
-      );
-  
-  
-    if (prevBtn) {
-  
-      prevBtn.disabled =
-        index <= 0;
-  
-    }
-  
-  
-    if (nextBtn) {
-  
-      nextBtn.disabled =
-        index >=
-        state.ranchoCurrent.days.length - 1;
-  
-    }
-  
+  const day =
+    getSelectedRanchoDay();
+
+  if (!day) {
+    return;
   }
 
-  function renderRanchoWeekDays() {
 
-    const container =
-      document.getElementById(
-        "ranchoWeekDays"
-      );
-  
-  
-    if (!container) {
-      return;
-    }
-  
-  
-    container.replaceChildren();
-  
-  
-    const selectedDay =
-      getSelectedRanchoDay();
-  
-  
-    if (
-      !state.ranchoCurrent?.days
-    ) {
-      return;
-    }
-  
-  
-    state.ranchoCurrent.days.forEach(
-      (day) => {
-  
-        const date =
-          new Date(
-            `${day}T12:00:00`
-          );
-  
-  
-        const button =
-          document.createElement(
-            "button"
-          );
-  
-  
-        button.type =
-          "button";
-  
-  
-        button.className =
-          "rancho-week-day";
-  
-  
-        if (
-          day === selectedDay
-        ) {
-  
-          button.classList.add(
-            "active"
-          );
-  
-        }
-  
-  
-        const weekday =
-          document.createElement(
-            "span"
-          );
-  
-  
-        weekday.textContent =
-          new Intl.DateTimeFormat(
-            "es-ES",
-            {
-              weekday: "short"
-            }
-          )
-            .format(date)
-            .replace(".", "");
-  
-  
-        const number =
-          document.createElement(
-            "strong"
-          );
-  
-  
-        number.textContent =
-          date.getDate();
-  
-  
-        button.append(
-          weekday,
-          number
-        );
-  
-  
-        button.addEventListener(
-          "click",
-          () => {
-  
-            state.ranchoCurrent.selectedDay =
-              day;
-  
-  
-            renderRancho();
-  
-          }
-        );
-  
-  
-        container.append(
-          button
-        );
-  
-      }
+  const date =
+    new Date(
+      `${day}T12:00:00`
     );
-  
+
+
+  const name =
+    new Intl.DateTimeFormat(
+      "es-ES",
+      {
+        weekday:
+          "long"
+      }
+    ).format(date);
+
+
+  const shortDate =
+    new Intl.DateTimeFormat(
+      "es-ES",
+      {
+        day:
+          "2-digit",
+
+        month:
+          "short"
+      }
+    )
+      .format(date)
+      .replace(
+        ".",
+        ""
+      );
+
+
+  const nameEl =
+    document.getElementById(
+      "ranchoCurrentDayName"
+    );
+
+  const dateEl =
+    document.getElementById(
+      "ranchoCurrentDayDate"
+    );
+
+
+  if (nameEl) {
+
+    nameEl.textContent =
+      name.charAt(0).toUpperCase() +
+      name.slice(1);
+
   }
+
+
+  if (dateEl) {
+
+    dateEl.textContent =
+      shortDate.toUpperCase();
+
+  }
+
+
+  const prevBtn =
+    document.getElementById(
+      "ranchoPrevDay"
+    );
+
+  const nextBtn =
+    document.getElementById(
+      "ranchoNextDay"
+    );
+
+
+  const index =
+    state.ranchoCurrent.days.indexOf(
+      day
+    );
+
+
+  if (prevBtn) {
+
+    prevBtn.disabled =
+      index <= 0;
+
+  }
+
+
+  if (nextBtn) {
+
+    nextBtn.disabled =
+      index >=
+      state.ranchoCurrent.days.length - 1;
+
+  }
+
+}
+
+
+// ============================================================
+// SEMANA
+// ============================================================
+
+function renderRanchoWeekDays() {
+
+  const container =
+    document.getElementById(
+      "ranchoWeekDays"
+    );
+
+  if (!container) {
+    return;
+  }
+
+
+  container.replaceChildren();
+
+
+  const selectedDay =
+    getSelectedRanchoDay();
+
+
+  if (
+    !state.ranchoCurrent?.days
+  ) {
+    return;
+  }
+
+
+  state.ranchoCurrent.days.forEach(
+    day => {
+
+      const date =
+        new Date(
+          `${day}T12:00:00`
+        );
+
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+      button.type =
+        "button";
+
+      button.className =
+        "rancho-week-day";
+
+
+      if (
+        day === selectedDay
+      ) {
+
+        button.classList.add(
+          "active"
+        );
+
+      }
+
+
+      const weekday =
+        document.createElement(
+          "span"
+        );
+
+      weekday.textContent =
+        new Intl.DateTimeFormat(
+          "es-ES",
+          {
+            weekday:
+              "short"
+          }
+        )
+          .format(date)
+          .replace(
+            ".",
+            ""
+          );
+
+
+      const number =
+        document.createElement(
+          "strong"
+        );
+
+      number.textContent =
+        date.getDate();
+
+
+      button.append(
+        weekday,
+        number
+      );
+
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          state.ranchoCurrent.selectedDay =
+            day;
+
+          renderRancho();
+
+        }
+      );
+
+
+      container.append(
+        button
+      );
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// CAMBIAR DÍA
+// ============================================================
+
+function changeRanchoDay(
+  offset
+) {
+
+  if (
+    !state.ranchoCurrent?.days
+  ) {
+    return;
+  }
+
+
+  const current =
+    getSelectedRanchoDay();
+
+
+  const index =
+    state.ranchoCurrent.days.indexOf(
+      current
+    );
+
+
+  const newIndex =
+    index + offset;
+
+
+  if (
+    newIndex < 0 ||
+    newIndex >=
+      state.ranchoCurrent.days.length
+  ) {
+    return;
+  }
+
+
+  state.ranchoCurrent.selectedDay =
+    state.ranchoCurrent.days[
+      newIndex
+    ];
+
+
+  renderRancho();
+
+}

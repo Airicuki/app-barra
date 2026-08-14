@@ -19,8 +19,25 @@ import {
 } from "../services/productos.service.js";
 
 
-let activeInventoryCategory =
-  null;
+let activeInventoryCategory = null;
+
+
+// ============================================================
+// CATEGORÍAS DEL INVENTARIO
+// ============================================================
+
+const INVENTORY_CATEGORIES = [
+  {
+    id: "con_alcohol",
+    label: "Bebidas CON Alcohol",
+    icon: "🍺"
+  },
+  {
+    id: "sin_alcohol",
+    label: "Bebidas SIN Alcohol",
+    icon: "🥤"
+  }
+];
 
 
 // ============================================================
@@ -48,11 +65,29 @@ export async function loadProductsFromSupabase() {
   state.products =
     data.map(
       (product) => ({
-        id: product.id,
-        name: product.nombre,
-        stock: Number(product.stock || 0),
-        price: Number(product.precio || 0),
-        activo: product.activo
+
+        id:
+          product.id,
+
+        name:
+          product.nombre,
+
+        stock:
+          Number(
+            product.stock || 0
+          ),
+
+        price:
+          Number(
+            product.precio || 0
+          ),
+
+        activo:
+          product.activo,
+
+        category:
+          product.categoria
+
       })
     );
 
@@ -107,68 +142,58 @@ export function renderInventory(
 
 
   const query =
-    searchTerm.trim().toLocaleLowerCase(
-      "es"
-    );
+    searchTerm
+      .trim()
+      .toLocaleLowerCase("es");
 
 
   const products =
     state.products.filter(
-      (product) =>
-        product.name
-          .toLocaleLowerCase("es")
-          .includes(query)
+      (product) => {
+
+        const name =
+          String(
+            product.name || ""
+          )
+            .toLocaleLowerCase("es");
+
+        return name.includes(
+          query
+        );
+
+      }
     );
 
 
-  const categories = [
-    {
-      id: "refrescos",
-      label: "Refrescos",
-      icon: "🥤"
-    },
-    {
-      id: "cervezas",
-      label: "Cervezas",
-      icon: "🍺"
-    },
-    {
-      id: "aguas",
-      label: "Aguas",
-      icon: "💧"
-    },
-    {
-      id: "copas",
-      label: "Copas y licores",
-      icon: "🥃"
-    },
-    {
-      id: "otros",
-      label: "Otros productos",
-      icon: "📦"
-    }
-  ];
+  // ==========================================================
+  // CATEGORÍAS
+  // ==========================================================
 
-
-  categories.forEach(
+  INVENTORY_CATEGORIES.forEach(
     (category) => {
 
       const categoryProducts =
         products.filter(
           (product) =>
             getInventoryCategory(
-              product.name
+              product
             ) === category.id
         );
 
 
-      if (!categoryProducts.length) {
+      if (
+        !categoryProducts.length
+      ) {
+
         return;
+
       }
 
 
       const section =
-        document.createElement("section");
+        document.createElement(
+          "section"
+        );
 
 
       section.className =
@@ -178,6 +203,10 @@ export function renderInventory(
       section.dataset.category =
         category.id;
 
+
+      // ======================================================
+      // ESTADO ABIERTO / CERRADO
+      // ======================================================
 
       const isOpen =
         Boolean(query) ||
@@ -197,21 +226,42 @@ export function renderInventory(
       );
 
 
+      // ======================================================
+      // STOCK TOTAL
+      // ======================================================
+
       const totalStock =
         categoryProducts.reduce(
-          (total, product) =>
-            total + Number(product.stock || 0),
+          (
+            total,
+            product
+          ) =>
+            total +
+            Number(
+              product.stock || 0
+            ),
           0
         );
 
 
+      // ======================================================
+      // CABECERA DE CATEGORÍA
+      // ======================================================
+
       const toggle =
-        document.createElement("button");
+        document.createElement(
+          "button"
+        );
 
 
-      toggle.type = "button";
+      toggle.type =
+        "button";
+
+
       toggle.className =
         "inventory-category-toggle";
+
+
       toggle.setAttribute(
         "aria-expanded",
         String(isOpen)
@@ -220,17 +270,28 @@ export function renderInventory(
 
       toggle.innerHTML = `
         <span class="inventory-category-title">
-          ${category.icon} ${category.label}
+          ${category.icon}
+          ${category.label}
         </span>
+
         <span class="inventory-category-summary">
-          ${categoryProducts.length} productos ·
+          ${categoryProducts.length}
+          productos ·
+
           <strong class="${stockStatus(totalStock)}">
             ${totalStock} uds.
           </strong>
         </span>
-        <span class="inventory-category-arrow">›</span>
+
+        <span class="inventory-category-arrow">
+          ›
+        </span>
       `;
 
+
+      // ======================================================
+      // ABRIR / CERRAR
+      // ======================================================
 
       toggle.addEventListener(
         "click",
@@ -271,7 +332,9 @@ export function renderInventory(
                   )
                   ?.setAttribute(
                     "aria-expanded",
-                    String(isActive)
+                    String(
+                      isActive
+                    )
                   );
 
               }
@@ -281,8 +344,14 @@ export function renderInventory(
       );
 
 
+      // ======================================================
+      // PRODUCTOS
+      // ======================================================
+
       const rows =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
 
       rows.className =
@@ -291,7 +360,10 @@ export function renderInventory(
 
       categoryProducts
         .sort(
-          (first, second) =>
+          (
+            first,
+            second
+          ) =>
             first.name.localeCompare(
               second.name,
               "es"
@@ -318,29 +390,46 @@ export function renderInventory(
       );
 
 
-      els.inventoryRows.append(section);
+      els.inventoryRows.append(
+        section
+      );
 
     }
   );
 
 
+  // ==========================================================
+  // SIN RESULTADOS
+  // ==========================================================
+
   if (!products.length) {
 
     const empty =
-      document.createElement("p");
+      document.createElement(
+        "p"
+      );
 
 
-    empty.className = "muted";
+    empty.className =
+      "muted";
+
+
     empty.textContent =
       "No hay productos que coincidan con la búsqueda.";
 
 
-    els.inventoryRows.append(empty);
+    els.inventoryRows.append(
+      empty
+    );
 
   }
 
 }
 
+
+// ============================================================
+// CREAR FILA DE INVENTARIO
+// ============================================================
 
 function createInventoryRow(
   template,
@@ -349,31 +438,268 @@ function createInventoryRow(
 ) {
 
   const row =
-    template.content
-      .firstElementChild
-      .cloneNode(true);
+    document.createElement("article");
+
+  row.className =
+    "row-card inventory-row";
+
+  row.dataset.productId =
+    product.id;
 
 
-  row.dataset.productId = product.id;
+  // ==========================================================
+  // ICONOS
+  // ==========================================================
+
+  const saveIcon = `
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      class="inventory-action-icon"
+    >
+      <path d="M5 3h12l2 2v16H5V3Z"></path>
+      <path d="M8 3v6h8V3"></path>
+      <path d="M8 21v-6h8v6"></path>
+    </svg>
+  `;
 
 
-  row.querySelector("[data-name]").value =
-    product.name;
+  const deleteIcon = `
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      class="inventory-action-icon"
+    >
+      <path d="M4 7h16"></path>
+      <path d="M9 7V4h6v3"></path>
+      <path d="M7 7l1 14h8l1-14"></path>
+      <path d="M10 11v6"></path>
+      <path d="M14 11v6"></path>
+    </svg>
+  `;
 
 
-  row.querySelector("[data-stock]").value =
-    product.stock;
+  // ==========================================================
+  // CONTENIDO
+  // ==========================================================
+
+  row.innerHTML = `
+
+    <div class="inventory-product-main">
+
+      <button
+        type="button"
+        class="inventory-product-name"
+        data-toggle-category
+        aria-expanded="false"
+        title="Editar categoría"
+      >
+        <span class="inventory-product-icon">
+          ${getCategoryIcon(product.category)}
+        </span>
+
+        <span
+          class="inventory-product-name-text"
+        >
+          ${escapeInventoryHtml(product.name)}
+        </span>
+
+      </button>
 
 
-  row.querySelector("[data-price]").value =
-    product.price;
+      <input
+        type="text"
+        class="inventory-name-input"
+        data-name
+        value="${escapeInventoryHtml(product.name)}"
+        aria-label="Nombre del producto"
+      />
 
+
+      <div
+        class="inventory-category-editor"
+        data-category-editor
+        hidden
+      >
+
+        <select
+          data-category
+          aria-label="Categoría del producto"
+        >
+
+          <option
+            value="con_alcohol"
+            ${product.category === "con_alcohol" ? "selected" : ""}
+          >
+            🍺 Bebidas CON Alcohol
+          </option>
+
+          <option
+            value="sin_alcohol"
+            ${product.category === "sin_alcohol" ? "selected" : ""}
+          >
+            🥤 Bebidas SIN Alcohol
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+
+    <div class="inventory-stock-area">
+
+      <button
+        type="button"
+        class="inventory-stepper-btn"
+        data-stock-minus
+        aria-label="Disminuir stock"
+      >
+        −
+      </button>
+
+
+      <input
+        data-stock
+        type="number"
+        min="0"
+        step="1"
+        inputmode="numeric"
+        value="${Number(product.stock || 0)}"
+        aria-label="Stock"
+      />
+
+
+      <button
+        type="button"
+        class="inventory-stepper-btn"
+        data-stock-plus
+        aria-label="Aumentar stock"
+      >
+        +
+      </button>
+
+    </div>
+
+
+    <div class="inventory-actions">
+
+      <button
+        type="button"
+        class="inventory-action-save"
+        data-save-product
+        aria-label="Guardar producto"
+        title="Guardar"
+      >
+        ${saveIcon}
+      </button>
+
+
+      <button
+        type="button"
+        class="inventory-action-delete"
+        data-remove
+        aria-label="Eliminar producto"
+        title="Eliminar"
+      >
+        ${deleteIcon}
+      </button>
+
+    </div>
+
+  `;
+
+
+  // ==========================================================
+  // ELEMENTOS
+  // ==========================================================
+
+  const nameButton =
+    row.querySelector(
+      "[data-toggle-category]"
+    );
+
+
+  const nameInput =
+    row.querySelector(
+      "[data-name]"
+    );
+
+
+  const categoryEditor =
+    row.querySelector(
+      "[data-category-editor]"
+    );
+
+
+  // ==========================================================
+  // MOSTRAR / OCULTAR EDICIÓN
+  // ==========================================================
+
+  if (nameButton) {
+
+    nameButton.addEventListener(
+      "click",
+      () => {
+
+        if (!canEdit) {
+          return;
+        }
+
+
+        const isOpen =
+          !categoryEditor.hidden;
+
+
+        categoryEditor.hidden =
+          isOpen;
+
+
+        nameButton.setAttribute(
+          "aria-expanded",
+          String(!isOpen)
+        );
+
+
+        row.classList.toggle(
+          "category-editing",
+          !isOpen
+        );
+
+
+        if (!isOpen) {
+
+          nameInput.focus();
+
+        }
+
+      }
+    );
+
+  }
+
+
+  // ==========================================================
+  // PERMISOS
+  // ==========================================================
 
   row
-    .querySelectorAll("input, button")
+    .querySelectorAll(
+      "input, select, button"
+    )
     .forEach(
       (control) => {
-        control.disabled = !canEdit;
+
+        /*
+         * El nombre del producto se muestra
+         * como botón pero la edición real
+         * se hace en el input oculto.
+         */
+
+        control.disabled =
+          !canEdit;
+
       }
     );
 
@@ -382,47 +708,126 @@ function createInventoryRow(
 
 }
 
+// ============================================================
+// ICONO DE CATEGORÍA
+// ============================================================
 
-function getInventoryCategory(name) {
+function getCategoryIcon(
+  category
+) {
 
-  const value =
-    name.toLocaleLowerCase("es");
+  if (
+    category ===
+    "con_alcohol"
+  ) {
 
+    return "🍺";
 
-  if (/agua/.test(value)) {
-    return "aguas";
   }
 
 
-  if (/cerveza|caña|birra/.test(value)) {
-    return "cervezas";
+  if (
+    category ===
+    "sin_alcohol"
+  ) {
+
+    return "🥤";
+
   }
 
 
-  if (/coca|cola|fanta|nestea|refresco|zumo|red bull|monster/.test(value)) {
-    return "refrescos";
-  }
-
-
-  if (/ron|ginebra|whisky|vodka|licor|vino|copa|tónica/.test(value)) {
-    return "copas";
-  }
-
-
-  return "otros";
+  return "📦";
 
 }
 
 
-function stockStatus(stock) {
+// ============================================================
+// ESCAPAR HTML
+// ============================================================
+
+function escapeInventoryHtml(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
+
+
+// ============================================================
+// OBTENER CATEGORÍA
+// ============================================================
+
+function getInventoryCategory(
+  product
+) {
+
+  if (
+    product.category ===
+    "con_alcohol"
+  ) {
+
+    return "con_alcohol";
+
+  }
+
+
+  if (
+    product.category ===
+    "sin_alcohol"
+  ) {
+
+    return "sin_alcohol";
+
+  }
+
+
+  return null;
+
+}
+
+
+// ============================================================
+// ESTADO DEL STOCK
+// ============================================================
+
+function stockStatus(
+  stock
+) {
 
   if (stock <= 5) {
+
     return "stock-critical";
+
   }
 
 
   if (stock <= 20) {
+
     return "stock-low";
+
   }
 
 
@@ -434,11 +839,6 @@ function stockStatus(stock) {
 // ============================================================
 // AÑADIR PRODUCTO
 // ============================================================
-//
-// IMPORTANTE:
-// El producto se crea directamente en Supabase.
-// No se crea solamente en memoria.
-// ============================================================
 
 export async function addProduct() {
 
@@ -449,128 +849,471 @@ export async function addProduct() {
   ) {
 
     return;
+
   }
 
 
-  const product = {
+  // ==========================================================
+  // CREAR MODAL
+  // ==========================================================
 
-    nombre:
-      "Nuevo producto",
-
-    stock:
-      0,
-
-    precio:
-      0,
-
-    activo:
-      true
-
-  };
-
-
-  try {
-
-    console.log(
-      "➕ Creando producto en Supabase..."
+  const overlay =
+    document.createElement(
+      "div"
     );
 
 
-    const {
-      data,
-      error
-    } = await db
-      .from("productos")
-      .insert(product)
-      .select()
-      .single();
+  overlay.className =
+    "inventory-add-overlay";
 
 
-    if (error) {
+  overlay.innerHTML = `
+    <div
+      class="inventory-add-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="inventoryAddTitle"
+    >
 
-      console.error(
-        "❌ Error creando producto en Supabase:",
-        error
-      );
+      <div class="inventory-add-header">
+
+        <div>
+
+          <h3 id="inventoryAddTitle">
+            Añadir producto
+          </h3>
+
+          <p>
+            Introduce los datos del nuevo producto.
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          class="inventory-add-close"
+          data-close-add-product
+          aria-label="Cerrar"
+        >
+          ×
+        </button>
+
+      </div>
 
 
-      alert(
-        "No se ha podido crear el producto."
-      );
+      <div class="inventory-add-body">
+
+        <label>
+          Nombre del producto
+
+          <input
+            type="text"
+            data-new-product-name
+            placeholder="Ej. Coca-Cola"
+            autocomplete="off"
+          >
+        </label>
 
 
-      return;
-    }
+        <label>
+          Tipo de bebida
+
+          <select
+            data-new-product-category
+          >
+
+            <option value="con_alcohol">
+              🍺 Bebidas CON Alcohol
+            </option>
+
+            <option value="sin_alcohol">
+              🥤 Bebidas SIN Alcohol
+            </option>
+
+          </select>
+
+        </label>
 
 
-    // --------------------------------------------------------
-    // Añadir al estado local SOLO después del INSERT correcto
-    // --------------------------------------------------------
+        <label>
+          Stock inicial
 
-    const newProduct = {
+          <input
+            type="number"
+            min="0"
+            step="1"
+            value="0"
+            data-new-product-stock
+          >
 
-      id:
-        data.id,
+        </label>
 
-      name:
-        data.nombre,
+      </div>
 
-      stock:
-        Number(
-          data.stock || 0
-        ),
 
-      price:
-        Number(
-          data.precio || 0
-        ),
+      <div class="inventory-add-actions">
 
-      activo:
-        data.activo
+        <button
+          type="button"
+          class="btn-secondary"
+          data-close-add-product
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="btn-primary"
+          data-confirm-add-product
+        >
+          Añadir producto
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+
+  document.body.append(
+    overlay
+  );
+
+
+  const nameInput =
+    overlay.querySelector(
+      "[data-new-product-name]"
+    );
+
+
+  const categoryInput =
+    overlay.querySelector(
+      "[data-new-product-category]"
+    );
+
+
+  const stockInput =
+    overlay.querySelector(
+      "[data-new-product-stock]"
+    );
+
+
+  const closeModal =
+    () => {
+
+      overlay.remove();
 
     };
 
 
-    state.products.push(
-      newProduct
+  // ==========================================================
+  // CERRAR
+  // ==========================================================
+
+  overlay
+    .querySelectorAll(
+      "[data-close-add-product]"
+    )
+    .forEach(
+      (button) => {
+
+        button.addEventListener(
+          "click",
+          closeModal
+        );
+
+      }
     );
 
 
-    saveState();
+  overlay.addEventListener(
+    "click",
+    (event) => {
+
+      if (
+        event.target ===
+        overlay
+      ) {
+
+        closeModal();
+
+      }
+
+    }
+  );
 
 
-    renderInventory();
+  // ==========================================================
+  // ESC
+  // ==========================================================
+
+  const handleEscape =
+    (event) => {
+
+      if (
+        event.key ===
+        "Escape"
+      ) {
+
+        closeModal();
+
+        document.removeEventListener(
+          "keydown",
+          handleEscape
+        );
+
+      }
+
+    };
 
 
-    console.log(
-      "➕ Producto añadido en Supabase:",
-      newProduct
+  document.addEventListener(
+    "keydown",
+    handleEscape
+  );
+
+
+  // ==========================================================
+  // CREAR PRODUCTO
+  // ==========================================================
+
+  const confirmButton =
+    overlay.querySelector(
+      "[data-confirm-add-product]"
     );
 
 
-  } catch (error) {
+  confirmButton.addEventListener(
+    "click",
+    async () => {
 
-    console.error(
-      "❌ Error inesperado creando producto:",
-      error
-    );
+      const nombre =
+        nameInput
+          .value
+          .trim();
 
 
-    alert(
-      "Ha ocurrido un error al crear el producto."
-    );
+      const categoria =
+        categoryInput
+          .value;
 
-  }
+
+      const stock =
+        Math.max(
+          0,
+          Number(
+            stockInput.value ||
+            0
+          )
+        );
+
+
+      if (!nombre) {
+
+        nameInput.focus();
+
+        nameInput.classList.add(
+          "input-error"
+        );
+
+        return;
+
+      }
+
+
+      if (
+        ![
+          "con_alcohol",
+          "sin_alcohol"
+        ].includes(
+          categoria
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      confirmButton.disabled =
+        true;
+
+
+      confirmButton.textContent =
+        "Añadiendo...";
+
+
+      try {
+
+        console.log(
+          "➕ Creando producto en Supabase..."
+        );
+
+
+        const {
+          data,
+          error
+        } =
+          await db
+            .from("productos")
+            .insert({
+
+              nombre,
+
+              stock,
+
+              precio:
+                0,
+
+              activo:
+                true,
+
+              categoria
+
+            })
+            .select()
+            .single();
+
+
+        if (error) {
+
+          console.error(
+            "❌ Error creando producto en Supabase:",
+            error
+          );
+
+
+          alert(
+            "No se ha podido crear el producto."
+          );
+
+
+          return;
+
+        }
+
+
+        const newProduct = {
+
+          id:
+            data.id,
+
+          name:
+            data.nombre,
+
+          stock:
+            Number(
+              data.stock || 0
+            ),
+
+          price:
+            Number(
+              data.precio || 0
+            ),
+
+          activo:
+            data.activo,
+
+          category:
+            data.categoria
+
+        };
+
+
+        state.products.push(
+          newProduct
+        );
+
+
+        saveState();
+
+
+        closeModal();
+
+
+        /*
+         * Abrimos automáticamente la categoría
+         * donde se ha creado el producto.
+         */
+
+        activeInventoryCategory =
+          categoria;
+
+
+        renderInventory();
+
+
+        console.log(
+          "➕ Producto añadido en Supabase:",
+          newProduct
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "❌ Error inesperado creando producto:",
+          error
+        );
+
+
+        alert(
+          "Ha ocurrido un error al crear el producto."
+        );
+
+
+      } finally {
+
+        confirmButton.disabled =
+          false;
+
+
+        confirmButton.textContent =
+          "Añadir producto";
+
+      }
+
+    }
+  );
+
+
+  // ==========================================================
+  // ENTER
+  // ==========================================================
+
+  nameInput.addEventListener(
+    "keydown",
+    (event) => {
+
+      if (
+        event.key ===
+        "Enter"
+      ) {
+
+        event.preventDefault();
+
+        confirmButton.click();
+
+      }
+
+    }
+  );
+
+
+  setTimeout(
+    () => {
+
+      nameInput.focus();
+
+    },
+    0
+  );
 
 }
 
 
 // ============================================================
 // GUARDAR PRODUCTO
-// ============================================================
-//
-// Aquí sí se guarda el stock/precio/nombre.
-// Los botones + / - NO llaman a este método.
 // ============================================================
 
 async function saveProduct(row) {
@@ -580,7 +1323,6 @@ async function saveProduct(row) {
       appState.session
     )
   ) {
-
     return;
   }
 
@@ -607,6 +1349,10 @@ async function saveProduct(row) {
   }
 
 
+  // ==========================================================
+  // CAMPOS
+  // ==========================================================
+
   const nameInput =
     row.querySelector(
       "[data-name]"
@@ -625,16 +1371,25 @@ async function saveProduct(row) {
     );
 
 
+  const categoryInput =
+    row.querySelector(
+      "[data-category]"
+    );
+
+
   const button =
     row.querySelector(
       "[data-save-product]"
     );
 
 
+  // ==========================================================
+  // VALORES
+  // ==========================================================
+
   const nombre =
-    nameInput
-      ?.value
-      .trim() ||
+    nameInput?.value
+      ?.trim() ||
     "Sin nombre";
 
 
@@ -647,27 +1402,88 @@ async function saveProduct(row) {
     );
 
 
+  /*
+   * El precio no se muestra en el inventario,
+   * pero lo mantenemos para no perder el valor
+   * que pueda existir actualmente en Supabase.
+   */
+
   const precio =
-    Math.max(
-      0,
-      Number(
-        priceInput?.value || 0
-      )
+    product.price ??
+    Number(
+      priceInput?.value || 0
     );
 
+
+  const categoria =
+    categoryInput?.value ||
+    product.category ||
+    "sin_alcohol";
+
+
+  // ==========================================================
+  // VALIDAR CATEGORÍA
+  // ==========================================================
+
+  if (
+    ![
+      "con_alcohol",
+      "sin_alcohol"
+    ].includes(
+      categoria
+    )
+  ) {
+
+    alert(
+      "Selecciona una categoría válida."
+    );
+
+    return;
+  }
+
+
+  // ==========================================================
+  // ESTADO BOTÓN
+  // ==========================================================
 
   if (button) {
 
     button.disabled =
       true;
 
-    button.textContent =
-      "Guardando...";
+    button.classList.add(
+      "is-saving"
+    );
+
+    button.setAttribute(
+      "aria-label",
+      "Guardando..."
+    );
+
+    button.setAttribute(
+      "title",
+      "Guardando..."
+    );
 
   }
 
 
   try {
+
+    console.log(
+      "💾 Guardando producto:",
+      {
+        id: product.id,
+        nombre,
+        stock,
+        categoria
+      }
+    );
+
+
+    // ========================================================
+    // ACTUALIZAR SUPABASE
+    // ========================================================
 
     const {
       data,
@@ -678,7 +1494,8 @@ async function saveProduct(row) {
         {
           nombre,
           stock,
-          precio
+          precio,
+          categoria
         }
       );
 
@@ -695,7 +1512,6 @@ async function saveProduct(row) {
         "No se ha podido guardar el producto."
       );
 
-
       return;
     }
 
@@ -711,14 +1527,13 @@ async function saveProduct(row) {
         "No se ha podido confirmar la actualización."
       );
 
-
       return;
     }
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // ACTUALIZAR ESTADO LOCAL
-    // --------------------------------------------------------
+    // ========================================================
 
     product.name =
       data.nombre;
@@ -740,6 +1555,10 @@ async function saveProduct(row) {
       data.activo;
 
 
+    product.category =
+      data.categoria;
+
+
     saveState();
 
 
@@ -749,23 +1568,54 @@ async function saveProduct(row) {
     );
 
 
-    if (button) {
+    // ========================================================
+    // CERRAR EDICIÓN DE CATEGORÍA
+    // ========================================================
 
-      button.textContent =
-        "Guardado ✓";
+    const categoryEditor =
+      row.querySelector(
+        "[data-category-editor]"
+      );
 
 
-      setTimeout(
-        () => {
+    const nameButton =
+      row.querySelector(
+        "[data-toggle-category]"
+      );
 
-          button.textContent =
-            "Guardar";
 
-        },
-        1200
+    if (categoryEditor) {
+
+      categoryEditor.hidden =
+        true;
+
+    }
+
+
+    if (nameButton) {
+
+      nameButton.setAttribute(
+        "aria-expanded",
+        "false"
       );
 
     }
+
+
+    row.classList.remove(
+      "category-editing"
+    );
+
+
+    // ========================================================
+    // REABRIR LA CATEGORÍA CORRESPONDIENTE
+    // ========================================================
+
+    activeInventoryCategory =
+      product.category;
+
+
+    renderInventory();
 
 
   } catch (error) {
@@ -777,9 +1627,8 @@ async function saveProduct(row) {
 
 
     alert(
-      "Ha ocurrido un error al guardar."
+      "Ha ocurrido un error al guardar el producto."
     );
-
 
   } finally {
 
@@ -787,6 +1636,20 @@ async function saveProduct(row) {
 
       button.disabled =
         false;
+
+      button.classList.remove(
+        "is-saving"
+      );
+
+      button.setAttribute(
+        "aria-label",
+        "Guardar producto"
+      );
+
+      button.setAttribute(
+        "title",
+        "Guardar"
+      );
 
     }
 
@@ -797,11 +1660,6 @@ async function saveProduct(row) {
 
 // ============================================================
 // CAMBIAR STOCK CON + / -
-// ============================================================
-//
-// SOLO modifica el input.
-// NO toca Supabase.
-// NO llama a saveProduct().
 // ============================================================
 
 function changeStock(
@@ -816,6 +1674,7 @@ function changeStock(
   ) {
 
     return;
+
   }
 
 
@@ -826,7 +1685,9 @@ function changeStock(
 
 
   if (!stockInput) {
+
     return;
+
   }
 
 
@@ -855,7 +1716,9 @@ function changeStock(
 // ELIMINAR PRODUCTO
 // ============================================================
 
-async function removeProduct(row) {
+async function removeProduct(
+  row
+) {
 
   if (
     !canManageInventory(
@@ -864,6 +1727,7 @@ async function removeProduct(row) {
   ) {
 
     return;
+
   }
 
 
@@ -886,6 +1750,7 @@ async function removeProduct(row) {
     );
 
     return;
+
   }
 
 
@@ -896,7 +1761,9 @@ async function removeProduct(row) {
 
 
   if (!confirmed) {
+
     return;
+
   }
 
 
@@ -910,6 +1777,7 @@ async function removeProduct(row) {
 
     removeButton.disabled =
       true;
+
 
     removeButton.textContent =
       "Eliminando...";
@@ -945,12 +1813,9 @@ async function removeProduct(row) {
 
 
       return;
+
     }
 
-
-    // --------------------------------------------------------
-    // Eliminar del estado local
-    // --------------------------------------------------------
 
     state.products =
       state.products.filter(
@@ -1004,25 +1869,23 @@ async function removeProduct(row) {
 //
 // Gestiona:
 //
-//   CLICK
-//     +             → cambia stock visual
-//     -             → cambia stock visual
-//     Guardar       → guarda en Supabase
-//     Eliminar      → elimina de Supabase
-//
-//   ENTER
-//     → guarda el producto
+//   - Botón −
+//   - Botón +
+//   - Botón 💾 Guardar
+//   - Botón 🗑️ Eliminar
+//   - Enter sobre un campo
 //
 // ============================================================
 
-export async function updateInventory(event) {
+export async function updateInventory(
+  event
+) {
 
   if (
     !canManageInventory(
       appState.session
     )
   ) {
-
     return;
   }
 
@@ -1132,7 +1995,6 @@ export async function updateInventory(event) {
 
 
     return;
-
   }
 
 
