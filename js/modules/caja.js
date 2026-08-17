@@ -623,7 +623,9 @@ import {
   
       els.cashDiffStart.textContent =
         formatMoney(
-          start - morning
+          Math.abs(
+            start - morning
+          )
         );
   
     }
@@ -633,7 +635,9 @@ import {
   
       els.cashDiffEnd.textContent =
         formatMoney(
-          end - start
+          Math.abs(
+            end - start
+          )
         );
   
     }
@@ -643,7 +647,9 @@ import {
   
       els.cashDiffDay.textContent =
         formatMoney(
-          end - morning
+          Math.abs(
+            end - morning
+          )
         );
   
     }

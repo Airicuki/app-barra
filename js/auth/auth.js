@@ -291,6 +291,18 @@ export async function showDashboard() {
   });
 
 
+  els.inventoryEditOnly.forEach((node) => {
+
+    node.classList.toggle(
+      "hidden",
+      !["admin", "jefeBarra", "barra"].includes(
+        appState.session.role
+      )
+    );
+
+  });
+
+
   // ---------------------------------------------------
   // DÍA OPERATIVO
   //

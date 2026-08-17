@@ -16,7 +16,8 @@ export function isAdmin(session) {
   export function canManageInventory(session) {
     return [
       "admin",
-      "jefeBarra"
+      "jefeBarra",
+      "barra"
     ].includes(session?.role);
   }
   

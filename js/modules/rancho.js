@@ -1037,6 +1037,16 @@ function renderRanchoSchedule() {
           "rancho-person-select"
         );
 
+        select.disabled =
+          !isAdminOrJefeBarra();
+
+        if (!isAdminOrJefeBarra()) {
+
+          select.title =
+            "Solo el administrador y el jefe de barra pueden modificar los turnos.";
+
+        }
+
         select.dataset.scheduleDate =
           day;
 
@@ -1761,6 +1771,16 @@ async function updateRanchoSchedule(
 
   if (!select) {
     return;
+  }
+
+
+  if (!isAdminOrJefeBarra()) {
+
+    select.disabled =
+      true;
+
+    return;
+
   }
 
 

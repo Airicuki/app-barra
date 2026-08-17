@@ -16,6 +16,7 @@ export const els = {
     views: document.querySelectorAll(".view"),
     adminOnly: document.querySelectorAll(".admin-only"),
     inventoryManagerOnly: document.querySelectorAll(".inventory-manager-only"),
+    inventoryEditOnly: document.querySelectorAll(".inventory-edit-only"),
     operationalSummary: document.querySelector("#operationalSummary"),
   
     entryDate: document.querySelector("#entryDate"),
