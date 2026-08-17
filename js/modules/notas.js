@@ -271,7 +271,11 @@ export function renderNotas() {
 
 
       card.className =
-        "row-card note-row";
+        `row-card note-row${
+          note.read
+            ? " note-row-read"
+            : ""
+        }`;
 
 
       card.dataset.noteId =
@@ -999,6 +1003,15 @@ async function updateNoteRead(event) {
       read;
 
   }
+
+  checkbox
+    .closest(
+      ".note-row"
+    )
+    ?.classList.toggle(
+      "note-row-read",
+      read
+    );
 
 
   saveState();

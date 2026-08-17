@@ -1,19 +1,19 @@
 :root {
   color-scheme: light;
 
-  --bg: #f7f6fa;
+  --bg: #f7f4ff;
   --panel: #ffffff;
 
-  --text: #172033;
-  --muted: #777381;
+  --text: #101b3c;
+  --muted: #625f83;
 
-  --line: #e4e1eb;
+  --line: #e3dcfa;
 
-  --accent: rgb(91, 65, 166);
-  --accent-strong: rgb(72, 49, 135);
+  --accent: #5b32c4;
+  --accent-strong: #43208f;
 
-  --accent-light: #f1eef9;
-  --accent-soft: #f8f6fc;
+  --accent-light: #eee8ff;
+  --accent-soft: #faf8ff;
 
   --amber: #e59a2f;
   --amber-light: #fff4e5;
@@ -25,13 +25,13 @@
   --danger-light: #fceeee;
 
   --shadow:
-    0 18px 45px rgba(45, 32, 82, 0.10);
+    0 18px 45px rgba(68, 38, 143, 0.12);
 
   --shadow-sm:
-    0 3px 12px rgba(45, 32, 82, 0.06);
+    0 3px 12px rgba(68, 38, 143, 0.07);
 
   --shadow-md:
-    0 8px 24px rgba(45, 32, 82, 0.09);
+    0 8px 24px rgba(68, 38, 143, 0.10);
 
   --radius-sm: 9px;
   --radius-md: 12px;
@@ -50,7 +50,8 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
+  background: linear-gradient(145deg, #fbfaff 0%, #f3efff 100%);
+  isolation: isolate;
   color: var(--text);
   font-family:
     Inter,
@@ -61,6 +62,19 @@ body {
     "Segoe UI",
     sans-serif;
   line-height: 1.5;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.15;
+  background-image: url("./assets/img/banderaWhite.png");
+  background-repeat: space;
+  background-size: 84px auto;
+  filter: brightness(0) saturate(100%) invert(30%) sepia(24%) saturate(2478%) hue-rotate(225deg) brightness(91%) contrast(95%);
 }
 
 button,
@@ -215,6 +229,8 @@ h3 {
 
 .shell {
   min-height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
 .login-view {
@@ -222,6 +238,9 @@ h3 {
   display: grid;
   place-items: center;
   padding: 24px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
 
   background:
     radial-gradient(
@@ -237,7 +256,22 @@ h3 {
     var(--bg);
 }
 
+.login-view::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.15;
+  background-image: url("./assets/img/banderaWhite.png");
+  background-repeat: space;
+  background-size: 84px auto;
+  filter: brightness(0) saturate(100%) invert(30%) sepia(24%) saturate(2478%) hue-rotate(225deg) brightness(91%) contrast(95%);
+}
+
 .login-panel {
+  position: relative;
+  z-index: 1;
   width: min(100%, 430px);
   display: grid;
   gap: 24px;
@@ -387,27 +421,27 @@ h3 {
 }
 
 .dashboard {
-  width: min(1180px, 100%);
+  width: min(1320px, 100%);
   margin: 0 auto;
-  padding: 18px;
+  padding: 20px;
 }
 
 .app-header {
-  min-height: 72px;
+  min-height: 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
 
-  padding: 12px 18px;
-  margin-bottom: 10px;
+  padding: 14px 24px;
+  margin-bottom: 14px;
 
-  background: var(--accent);
+  background: linear-gradient(112deg, #6d42d5 0%, #49239f 100%);
   color: #fff;
   border-radius: var(--radius-lg);
 
   box-shadow:
-    0 7px 20px rgba(91, 65, 166, 0.18);
+    0 12px 28px rgba(71, 34, 156, 0.25);
 }
 
 .brand {
@@ -431,15 +465,15 @@ h3 {
 }
 
 .brand-text strong {
-  font-size: 18px;
+  font-size: 21px;
   line-height: 1.2;
   white-space: nowrap;
 }
 
 .brand-text span {
   margin-top: 2px;
-  font-size: 12px;
-  opacity: 0.78;
+  font-size: 14px;
+  opacity: 0.88;
 }
 
 .header-user {
@@ -514,24 +548,37 @@ h3 {
 
 .tabs {
   display: flex;
-  gap: 7px;
+  gap: 0;
 
   overflow-x: auto;
-  padding: 8px 0 10px;
+  padding: 0;
+  margin-bottom: 16px;
+
+  background: #fff;
+  border: 1px solid rgba(228, 220, 250, 0.92);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
 
   scrollbar-width: thin;
 }
 
 .tab {
-  min-width: 112px;
-  min-height: 43px;
-  padding: 0 17px;
+  min-width: 0;
+  flex: 1 0 132px;
+  min-height: 52px;
+  padding: 0 18px;
 
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 0;
+  border-right: 1px solid #eee9fb;
+  border-radius: 0;
 
-  background: #fff;
-  color: var(--muted);
+  background: transparent;
+  color: #554c86;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 
   white-space: nowrap;
 }
@@ -542,13 +589,36 @@ h3 {
   color: var(--accent);
 }
 
+.tab:first-child {
+  border-radius: 13px 0 0 13px;
+}
+
+.tab:last-child {
+  border-right: 0;
+  border-radius: 0 13px 13px 0;
+}
+
+.tab-icon {
+  width: 21px;
+  height: 21px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .tab.active {
-  background: var(--accent);
+  margin: 7px;
+  min-height: 38px;
+  flex-basis: calc(132px - 14px);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #6540d0, #4d27aa);
   color: #fff;
-  border-color: var(--accent);
 
   box-shadow:
-    0 3px 9px rgba(91, 65, 166, 0.20);
+    0 5px 13px rgba(91, 65, 166, 0.26);
 }
 
 .summary-grid {
@@ -609,14 +679,14 @@ h3 {
   justify-content: space-between;
   gap: 16px;
 
-  margin: 8px 0 12px;
-  padding: 16px;
+  margin: 0 0 14px;
+  padding: 15px 18px;
 
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
 
-  background: var(--panel);
-  box-shadow: var(--shadow-sm);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: none;
 }
 
 .date-field {
@@ -627,12 +697,12 @@ h3 {
   display: grid;
   gap: 16px;
 
-  padding: 20px;
+  padding: 24px;
 
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
 
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.94);
   box-shadow: var(--shadow-sm);
 }
 
@@ -3089,7 +3159,266 @@ white-space: nowrap;
 
 }
 
+#noteRows .note-row.note-row-read {
+  background: linear-gradient(135deg, #f7f1ff, #e6d8ff);
+  border-color: #bfa0f5;
+  box-shadow: 0 6px 17px rgba(91, 50, 196, 0.16);
+}
+
+#noteRows .note-row.note-row-read .note-card-main strong:last-child,
+#noteRows .note-row.note-row-read .note-read {
+  color: #5626bb;
+}
+
 /* El listado de personas se muestra después de comidas. */
 #ranchoView .rancho-people-panel {
   order: 1;
+}
+
+/* =========================================================
+   IDENTIDAD VISUAL · PEÑA LOS SEPULTUREROS
+   ========================================================= */
+
+.view > .section-head {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee9fb;
+}
+
+.summary-grid article,
+.cash-summary-card,
+.cash-card,
+.report-card,
+.report-placeholder,
+.row-card {
+  border-color: #e5def8;
+}
+
+.summary-grid article {
+  box-shadow: 0 5px 16px rgba(78, 47, 158, 0.07);
+}
+
+.summary-grid article:nth-child(1) {
+  background: linear-gradient(135deg, #fbf8ff, #f0e9ff);
+  border-color: #d9c9ff;
+}
+
+.summary-grid article:nth-child(2) {
+  background: linear-gradient(135deg, #f8fcff, #eaf4ff);
+  border-color: #bfdcff;
+}
+
+.summary-grid article:nth-child(3) {
+  background: linear-gradient(135deg, #f6fff9, #e8faef);
+  border-color: #bce9ce;
+}
+
+.summary-grid article:nth-child(4) {
+  background: linear-gradient(135deg, #fffdf8, #fff3dd);
+  border-color: #ffd89d;
+}
+
+#reportsView .summary-grid.compact article:nth-child(1)::before {
+  background: #7b4ae2;
+}
+
+#reportsView .summary-grid.compact article:nth-child(2)::before {
+  background: #3695ff;
+}
+
+#reportsView .summary-grid.compact article:nth-child(3)::before {
+  background: #27b66f;
+}
+
+#reportsView .summary-grid.compact article:nth-child(4)::before {
+  background: #f0a126;
+}
+
+.cash-revenue-summary,
+.report-selector {
+  border-color: #e2d9f8 !important;
+  background: linear-gradient(105deg, #fdfbff, #f7f2ff) !important;
+}
+
+/* Caja: cada conteo recibe una variante de la paleta de la referencia. */
+#cashView .cash-revenue-summary {
+  margin-bottom: 12px;
+  border-left: 4px solid #7044d8;
+  background: linear-gradient(105deg, #fdfbff, #f2ebff) !important;
+}
+
+#cashView .cash-revenue-summary strong {
+  color: #542bb5;
+  font-size: 1.45rem;
+}
+
+#cashView #cashTotalRevenueSummary {
+  border-left-color: #2586ed;
+  background: linear-gradient(105deg, #fbfdff, #eaf4ff) !important;
+}
+
+#cashView #cashTotalRevenueSummary strong {
+  color: #1675dc;
+}
+
+#cashView .cash-card {
+  border-width: 1px;
+  border-top-width: 3px;
+  box-shadow: 0 6px 18px rgba(67, 41, 140, 0.08);
+}
+
+#cashView .cash-card[data-cash-count="morning"] {
+  background: linear-gradient(145deg, #fff, #f4eeff);
+  border-color: #d3c1ff;
+  border-top-color: #7548dc;
+}
+
+#cashView .cash-card[data-cash-count="start"] {
+  background: linear-gradient(145deg, #fff, #edf6ff);
+  border-color: #bfdfff;
+  border-top-color: #3795f8;
+}
+
+#cashView .cash-card[data-cash-count="end"] {
+  background: linear-gradient(145deg, #fff, #edfbf3);
+  border-color: #c0ebd2;
+  border-top-color: #2abf73;
+}
+
+#cashView .cash-card header h3 {
+  color: var(--text);
+}
+
+#cashView .cash-card[data-cash-count="morning"] header strong {
+  color: #6437ca;
+}
+
+#cashView .cash-card[data-cash-count="start"] header strong {
+  color: #187ce5;
+}
+
+#cashView .cash-card[data-cash-count="end"] header strong {
+  color: #149757;
+}
+
+#cashView .cash-denomination {
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(83, 59, 143, 0.10);
+}
+
+#cashView .cash-denomination:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+#cashView .cash-denomination input {
+  background: rgba(255, 255, 255, 0.86);
+}
+
+/* Las diferencias conservan el código de color de los conteos que comparan. */
+#cashView .summary-grid.compact article:nth-child(1) {
+  background: linear-gradient(135deg, #fbf8ff, #f0e9ff);
+  border-color: #d3c1ff;
+}
+
+#cashView .summary-grid.compact article:nth-child(1)::before {
+  background: #7548dc;
+}
+
+#cashView .summary-grid.compact article:nth-child(1) strong {
+  color: #6437ca;
+}
+
+#cashView .summary-grid.compact article:nth-child(2) {
+  background: linear-gradient(135deg, #f8fcff, #eaf4ff);
+  border-color: #bfdfff;
+}
+
+#cashView .summary-grid.compact article:nth-child(2)::before {
+  background: #3795f8;
+}
+
+#cashView .summary-grid.compact article:nth-child(2) strong {
+  color: #187ce5;
+}
+
+#cashView .summary-grid.compact article:nth-child(3) {
+  background: linear-gradient(135deg, #f6fff9, #e8faef);
+  border-color: #c0ebd2;
+}
+
+#cashView .summary-grid.compact article:nth-child(3)::before {
+  background: #2abf73;
+}
+
+#cashView .summary-grid.compact article:nth-child(3) strong {
+  color: #149757;
+}
+
+.day-info-compact {
+  width: fit-content;
+  max-width: 100%;
+  padding: 10px 14px !important;
+  border: 1px solid #dfd4fa;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 3px 10px rgba(72, 39, 151, 0.08);
+  color: #4b4770 !important;
+  font-size: 14px !important;
+  font-weight: 600;
+}
+
+.day-info-compact strong {
+  color: var(--accent) !important;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  body::before,
+  .login-view::before {
+    opacity: 0.13;
+    background-size: 68px auto;
+  }
+
+  .tabs {
+    gap: 0;
+    padding: 0;
+  }
+
+  .tab {
+    min-width: 108px;
+    min-height: 48px;
+    padding: 0 12px;
+    border-radius: 0;
+  }
+
+  .tab.active {
+    min-height: 34px;
+    border-radius: 8px;
+  }
+
+  .tab-icon {
+    width: 19px;
+    height: 19px;
+  }
+
+  .day-info-compact {
+    width: 100%;
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    line-height: 1.45;
+  }
+
+  /* En móvil, los tres totales se mantienen legibles y sin desplazamiento. */
+  #cashView .summary-grid.compact {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  #cashView .cash-card {
+    padding: 16px;
+  }
+
+  #cashView .cash-denomination input {
+    min-height: 42px;
+  }
 }
