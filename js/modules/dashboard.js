@@ -16,9 +16,17 @@ export async function initDashboard() {
 
   await renderDashboard();
 
+  els.entryDate?.addEventListener(
+    "change",
+    renderDashboard
+  );
+
+  window.addEventListener(
+    "app:sale-saved",
+    renderDashboard
+  );
+
 }
-
-
 // ============================================================
 // RENDER DASHBOARD
 // ============================================================
@@ -40,18 +48,9 @@ export async function renderDashboard() {
   }
 
 
-  const {
-    start,
-    end
-  } = getWeekBounds(date);
-
-
   console.log(
-    "📊 Calculando dashboard:",
-    {
-      start,
-      end
-    }
+    "📊 Calculando dashboard para el día operativo:",
+    date
   );
 
 
@@ -67,13 +66,9 @@ export async function renderDashboard() {
     .select(
       "id, fecha, total"
     )
-    .gte(
+    .eq(
       "fecha",
-      start
-    )
-    .lte(
-      "fecha",
-      end
+      date
     );
 
 
@@ -220,7 +215,90 @@ export async function renderDashboard() {
 
 
   // ==========================================================
-  // 4. PÉRDIDAS
+  // 4. VALOR VENDIDO TOTAL
+  // ==========================================================
+
+  const {
+    data: ventasTotales,
+    error: ventasTotalesError
+  } = await db
+    .from("ventas")
+    .select("id, total");
+
+
+  if (ventasTotalesError) {
+
+    console.error(
+      "❌ Error cargando el total de ventas:",
+      ventasTotalesError
+    );
+
+    return;
+
+  }
+
+
+  const ventasTotalesRows =
+    ventasTotales || [];
+
+  let valorVendidoTotal =
+    0;
+
+
+  if (ventasTotalesRows.length) {
+
+    const ventaIdsTotales =
+      ventasTotalesRows.map(
+        venta => venta.id
+      );
+
+    const {
+      data: detallesTotales,
+      error: detallesTotalesError
+    } = await db
+      .from("detalle_ventas_barra")
+      .select("venta_id")
+      .in(
+        "venta_id",
+        ventaIdsTotales
+      );
+
+
+    if (detallesTotalesError) {
+
+      console.error(
+        "❌ Error cargando el detalle del total de ventas:",
+        detallesTotalesError
+      );
+
+      return;
+
+    }
+
+
+    const ventaIdsBarraTotales =
+      new Set(
+        (detallesTotales || []).map(
+          detalle => detalle.venta_id
+        )
+      );
+
+    valorVendidoTotal =
+      ventasTotalesRows.reduce(
+        (sum, venta) =>
+          ventaIdsBarraTotales.has(
+            venta.id
+          )
+            ? sum + Number(venta.total || 0)
+            : sum,
+        0
+      );
+
+  }
+
+
+  // ==========================================================
+  // 5. PÉRDIDAS
   // ==========================================================
 
   const {
@@ -231,13 +309,9 @@ export async function renderDashboard() {
     .select(
       "id, fecha, cantidad"
     )
-    .gte(
+    .eq(
       "fecha",
-      start
-    )
-    .lte(
-      "fecha",
-      end
+      date
     );
 
 
@@ -269,7 +343,7 @@ export async function renderDashboard() {
 
 
   // ==========================================================
-  // 5. STOCK ACTUAL
+  // 6. STOCK ACTUAL
   // ==========================================================
 
   const stockActual =
@@ -286,7 +360,7 @@ export async function renderDashboard() {
 
 
   // ==========================================================
-  // 6. ACTUALIZAR INTERFAZ
+  // 7. ACTUALIZAR INTERFAZ
   // ==========================================================
 
   if (els.weekSold) {
@@ -315,6 +389,16 @@ export async function renderDashboard() {
   }
 
 
+  if (els.totalRevenue) {
+
+    els.totalRevenue.textContent =
+      formatMoney(
+        valorVendidoTotal
+      );
+
+  }
+
+
   if (els.weekStock) {
 
     els.weekStock.textContent =
@@ -333,87 +417,9 @@ export async function renderDashboard() {
 
       valorVendido,
 
+      valorVendidoTotal,
+
       stockActual
     }
   );
-
-}
-
-
-// ============================================================
-// CALCULAR SEMANA
-// ============================================================
-
-function getWeekBounds(dateString) {
-
-  const date =
-    new Date(
-      `${dateString}T12:00:00`
-    );
-
-
-  const day =
-    date.getDay();
-
-
-  // Lunes = inicio de semana
-
-  const diff =
-    day === 0
-      ? -6
-      : 1 - day;
-
-
-  const start =
-    new Date(
-      date
-    );
-
-
-  start.setDate(
-    date.getDate() + diff
-  );
-
-
-  const end =
-    new Date(
-      start
-    );
-
-
-  end.setDate(
-    start.getDate() + 6
-  );
-
-
-  return {
-
-    start:
-      toDateString(
-        start
-      ),
-
-    end:
-      toDateString(
-        end
-      )
-
-  };
-
-}
-
-
-// ============================================================
-// FORMATO YYYY-MM-DD
-// ============================================================
-
-function toDateString(date) {
-
-  return date
-    .toISOString()
-    .slice(
-      0,
-      10
-    );
-
 }

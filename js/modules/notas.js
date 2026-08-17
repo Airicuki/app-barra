@@ -498,6 +498,22 @@ export function renderNotas() {
           note.read
         );
 
+      const canMarkNoteAsRead =
+        appState.session &&
+        ["admin", "jefeBarra"].includes(
+          appState.session.role
+        );
+
+      readCheckbox.disabled =
+        !canMarkNoteAsRead;
+
+      if (!canMarkNoteAsRead) {
+
+        readCheckbox.title =
+          "Solo Jefe Barra y Directiva pueden marcar una nota como leída.";
+
+      }
+
 
       readCheckbox.dataset.noteRead =
         note.id;
@@ -506,7 +522,7 @@ export function renderNotas() {
       readLabel.append(
         readCheckbox,
         document.createTextNode(
-          " Leída"
+          " Leída por Jefe Barra / Directiva"
         )
       );
 
@@ -894,6 +910,31 @@ async function updateNoteRead(event) {
 
   if (!checkbox) {
     return;
+  }
+
+
+  const canMarkNoteAsRead =
+    appState.session &&
+    ["admin", "jefeBarra"].includes(
+      appState.session.role
+    );
+
+  if (!canMarkNoteAsRead) {
+
+    const note =
+      state.notes.find(
+        item =>
+          item.id ===
+          checkbox.dataset.noteRead
+      );
+
+    checkbox.checked =
+      Boolean(
+        note?.read
+      );
+
+    return;
+
   }
 
 

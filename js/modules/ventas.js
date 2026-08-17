@@ -1386,10 +1386,16 @@ function changeQuantity(event) {
       // ========================================================
   
       renderProductSteppers();
-  
+
       renderTransactions();
-  
-  
+
+      window.dispatchEvent(
+        new Event(
+          "app:sale-saved"
+        )
+      );
+
+
       flash(
         els.saveStatus,
         "Venta guardada correctamente."

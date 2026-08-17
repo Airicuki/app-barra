@@ -80,6 +80,14 @@ function isAdminOrJefeBarra() {
   );
 
 }
+
+function canAddRanchoPeople() {
+
+  return ["admin", "jefebarra", "barra"].includes(
+    getCurrentUserRole()
+  );
+
+}
 // ============================================================
 // INICIALIZACIÓN
 // ============================================================
@@ -135,7 +143,7 @@ export function initRancho() {
 
   // ==========================================================
   // AÑADIR PERSONA
-  // SOLO ADMIN
+  // ADMIN, JEFE DE BARRA Y BARRA
   // ==========================================================
 
   if (els.personForm) {
@@ -150,7 +158,7 @@ export function initRancho() {
 
   // ==========================================================
   // BOTÓN AÑADIR PERSONA
-  // SOLO ADMIN
+  // ADMIN, JEFE DE BARRA Y BARRA
   // ==========================================================
 
   const addPersonBtn =
@@ -169,7 +177,7 @@ export function initRancho() {
         // SEGURIDAD
         // ----------------------------------------------------
 
-        if (!isAdmin()) {
+        if (!canAddRanchoPeople()) {
 
           console.warn(
             "🔒 Solo el administrador puede añadir personas."
@@ -380,7 +388,7 @@ export function initRancho() {
 
     addPersonBtn.classList.toggle(
       "hidden",
-      !isAdmin()
+      !canAddRanchoPeople()
     );
 
   }
@@ -392,7 +400,7 @@ export function initRancho() {
 
   if (
     els.personForm &&
-    !isAdmin()
+    !canAddRanchoPeople()
   ) {
 
     els.personForm.classList.add(
@@ -419,7 +427,7 @@ export function initRancho() {
         isAdminOrJefeBarra(),
 
       puedeAñadirPersonas:
-        isAdmin(),
+        canAddRanchoPeople(),
 
       puedeEliminarComidas:
         isAdminOrJefeBarra()
@@ -789,7 +797,7 @@ function renderPeople() {
 
 
   // ----------------------------------------------------------
-  // SOLO ADMIN PUEDE AÑADIR PERSONAS
+  // ADMIN, JEFE DE BARRA Y BARRA PUEDEN AÑADIR PERSONAS
   // ----------------------------------------------------------
 
   const addPersonBtn =
@@ -801,7 +809,7 @@ function renderPeople() {
 
     addPersonBtn.classList.toggle(
       "hidden",
-      !isAdmin()
+      !canAddRanchoPeople()
     );
 
   }
@@ -809,7 +817,7 @@ function renderPeople() {
 
   if (
     els.personForm &&
-    !isAdmin()
+    !canAddRanchoPeople()
   ) {
 
     els.personForm.classList.add(
@@ -1299,6 +1307,9 @@ function renderRanchoMeals() {
               status.paid
             );
 
+          paid.disabled =
+            !isAdminOrJefeBarra();
+
           paid.dataset.mealPaid =
             personName;
 
@@ -1622,10 +1633,10 @@ async function addPerson(
 
 
   // ----------------------------------------------------------
-  // SEGURIDAD: SOLO ADMIN
+  // SEGURIDAD: ADMIN, JEFE DE BARRA Y BARRA
   // ----------------------------------------------------------
 
-  if (!isAdmin()) {
+  if (!canAddRanchoPeople()) {
 
     console.warn(
       "🔒 Solo el administrador puede añadir personas al Rancho."
@@ -2072,6 +2083,21 @@ async function updateRanchoMeal(
     checkbox.dataset.mealSigned
       ? checkbox.checked
       : current.signed;
+
+
+  if (
+    checkbox.dataset.mealPaid &&
+    !isAdminOrJefeBarra()
+  ) {
+
+    checkbox.checked =
+      Boolean(
+        current.paid
+      );
+
+    return;
+
+  }
 
   const newPaid =
     checkbox.dataset.mealPaid

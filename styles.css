@@ -3088,3 +3088,8 @@ white-space: nowrap;
   }
 
 }
+
+/* El listado de personas se muestra después de comidas. */
+#ranchoView .rancho-people-panel {
+  order: 1;
+}

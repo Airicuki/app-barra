@@ -106,6 +106,9 @@ export const els = {
   
     weekRevenue:
       document.querySelector("#weekRevenue"),
+
+    totalRevenue:
+      document.querySelector("#totalRevenue"),
   
     weekStock:
       document.querySelector("#weekStock")
