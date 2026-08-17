@@ -998,8 +998,15 @@ export async function addProduct() {
     );
 
 
+  let handleEscape;
+
   const closeModal =
     () => {
+
+      document.removeEventListener(
+        "keydown",
+        handleEscape
+      );
 
       overlay.remove();
 
@@ -1047,7 +1054,7 @@ export async function addProduct() {
   // ESC
   // ==========================================================
 
-  const handleEscape =
+  handleEscape =
     (event) => {
 
       if (
@@ -1056,11 +1063,6 @@ export async function addProduct() {
       ) {
 
         closeModal();
-
-        document.removeEventListener(
-          "keydown",
-          handleEscape
-        );
 
       }
 

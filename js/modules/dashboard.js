@@ -14,8 +14,6 @@ export async function initDashboard() {
     "📊 Inicializando resumen del dashboard..."
   );
 
-  await renderDashboard();
-
   els.entryDate?.addEventListener(
     "change",
     renderDashboard
@@ -86,6 +84,9 @@ export async function renderDashboard() {
 
   const ventasRows =
     ventas || [];
+
+  let unidadesVendidas =
+    0;
 
 
   console.log(
@@ -175,7 +176,7 @@ export async function renderDashboard() {
     // UNIDADES VENDIDAS
     // ========================================================
 
-    const unidadesVendidas =
+    unidadesVendidas =
       detallesRows.reduce(
         (sum, detalle) =>
           sum +
@@ -185,16 +186,6 @@ export async function renderDashboard() {
         0
       );
 
-
-    // Guardamos temporalmente para usarlo después
-    window.__dashboardUnidades =
-      unidadesVendidas;
-
-
-  } else {
-
-    window.__dashboardUnidades =
-      0;
 
   }
 
@@ -218,81 +209,21 @@ export async function renderDashboard() {
   // 4. VALOR VENDIDO TOTAL
   // ==========================================================
 
-  const {
-    data: ventasTotales,
-    error: ventasTotalesError
-  } = await db
-    .from("ventas")
-    .select("id, total");
+  let valorVendidoTotal;
 
+  try {
 
-  if (ventasTotalesError) {
+    valorVendidoTotal =
+      await loadTotalBarRevenue();
+
+  } catch (error) {
 
     console.error(
       "❌ Error cargando el total de ventas:",
-      ventasTotalesError
+      error
     );
 
     return;
-
-  }
-
-
-  const ventasTotalesRows =
-    ventasTotales || [];
-
-  let valorVendidoTotal =
-    0;
-
-
-  if (ventasTotalesRows.length) {
-
-    const ventaIdsTotales =
-      ventasTotalesRows.map(
-        venta => venta.id
-      );
-
-    const {
-      data: detallesTotales,
-      error: detallesTotalesError
-    } = await db
-      .from("detalle_ventas_barra")
-      .select("venta_id")
-      .in(
-        "venta_id",
-        ventaIdsTotales
-      );
-
-
-    if (detallesTotalesError) {
-
-      console.error(
-        "❌ Error cargando el detalle del total de ventas:",
-        detallesTotalesError
-      );
-
-      return;
-
-    }
-
-
-    const ventaIdsBarraTotales =
-      new Set(
-        (detallesTotales || []).map(
-          detalle => detalle.venta_id
-        )
-      );
-
-    valorVendidoTotal =
-      ventasTotalesRows.reduce(
-        (sum, venta) =>
-          ventaIdsBarraTotales.has(
-            venta.id
-          )
-            ? sum + Number(venta.total || 0)
-            : sum,
-        0
-      );
 
   }
 
@@ -366,7 +297,7 @@ export async function renderDashboard() {
   if (els.weekSold) {
 
     els.weekSold.textContent =
-      window.__dashboardUnidades || 0;
+      unidadesVendidas;
 
   }
 
@@ -411,7 +342,7 @@ export async function renderDashboard() {
     "✅ Dashboard actualizado:",
     {
       unidadesVendidas:
-        window.__dashboardUnidades,
+        unidadesVendidas,
 
       unidadesPerdidas,
 
@@ -422,4 +353,72 @@ export async function renderDashboard() {
       stockActual
     }
   );
+}
+
+async function loadTotalBarRevenue() {
+
+  const pageSize = 1000;
+  const saleIds = new Set();
+  let from = 0;
+
+  while (true) {
+
+    const {
+      data,
+      error
+    } = await db
+      .from("detalle_ventas_barra")
+      .select("venta_id")
+      .order("venta_id")
+      .range(
+        from,
+        from + pageSize - 1
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    (data || []).forEach(
+      detail => saleIds.add(detail.venta_id)
+    );
+
+    if ((data || []).length < pageSize) {
+      break;
+    }
+
+    from += pageSize;
+
+  }
+
+  const ids = Array.from(saleIds);
+  let total = 0;
+
+  for (let index = 0; index < ids.length; index += 200) {
+
+    const {
+      data,
+      error
+    } = await db
+      .from("ventas")
+      .select("total")
+      .in(
+        "id",
+        ids.slice(index, index + 200)
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    total += (data || []).reduce(
+      (sum, sale) =>
+        sum + Number(sale.total || 0),
+      0
+    );
+
+  }
+
+  return total;
+
 }

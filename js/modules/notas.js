@@ -8,6 +8,7 @@ import {
 } from "../state/state.js";
 
 import { els } from "../utils/dom.js";
+import { canManageNotes } from "../utils/permissions.js";
 
 
 // ============================================================
@@ -50,6 +51,21 @@ export function initNotas() {
     );
 
   }
+
+  els.entryDate?.addEventListener(
+    "change",
+    async () => {
+
+      if (els.noteDate) {
+        els.noteDate.value =
+          els.entryDate.value;
+      }
+
+      await loadNotas();
+      renderNotas();
+
+    }
+  );
 
 
   if (els.noteRows) {
@@ -499,9 +515,8 @@ export function renderNotas() {
         );
 
       const canMarkNoteAsRead =
-        appState.session &&
-        ["admin", "jefeBarra"].includes(
-          appState.session.role
+        canManageNotes(
+          appState.session
         );
 
       readCheckbox.disabled =
@@ -914,9 +929,8 @@ async function updateNoteRead(event) {
 
 
   const canMarkNoteAsRead =
-    appState.session &&
-    ["admin", "jefeBarra"].includes(
-      appState.session.role
+    canManageNotes(
+      appState.session
     );
 
   if (!canMarkNoteAsRead) {

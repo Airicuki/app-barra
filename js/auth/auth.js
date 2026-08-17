@@ -4,8 +4,10 @@ import { els } from "../utils/dom.js";
 
 import * as appState from "../state/state.js";
 
-import { loadProductsFromSupabase } from "../modules/inventario.js";
-
+import {
+  canAccessReports,
+  canManageInventory
+} from "../utils/permissions.js";
 
 // =====================================================
 // LOGIN
@@ -283,8 +285,8 @@ export async function showDashboard() {
 
     node.classList.toggle(
       "hidden",
-      !["admin", "jefeBarra"].includes(
-        appState.session.role
+      !canAccessReports(
+        appState.session
       )
     );
 
@@ -295,8 +297,8 @@ export async function showDashboard() {
 
     node.classList.toggle(
       "hidden",
-      !["admin", "jefeBarra", "barra"].includes(
-        appState.session.role
+      !canManageInventory(
+        appState.session
       )
     );
 

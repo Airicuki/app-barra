@@ -1,30 +1,44 @@
+function getRole(session) {
+  return String(session?.role || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]/g, "");
+}
+
 export function isAdmin(session) {
-    return session?.role === "admin";
-  }
-  
-  export function isJefeBarra(session) {
-    return session?.role === "jefeBarra";
-  }
+  return getRole(session) === "admin";
+}
+
+export function isJefeBarra(session) {
+  return getRole(session) === "jefebarra";
+}
   
   export function canManageNotes(session) {
     return [
       "admin",
-      "jefeBarra"
-    ].includes(session?.role);
+      "jefebarra"
+    ].includes(getRole(session));
   }
   
   export function canManageInventory(session) {
     return [
       "admin",
-      "jefeBarra",
+      "jefebarra",
       "barra"
-    ].includes(session?.role);
+    ].includes(getRole(session));
+  }
+
+  export function canAccessReports(session) {
+    return [
+      "admin",
+      "jefebarra"
+    ].includes(getRole(session));
   }
   
   export function canExportReports(session) {
-    return session?.role === "admin";
+    return isAdmin(session);
   }
   
   export function canAccessAdminView(session) {
-    return session?.role === "admin";
+    return isAdmin(session);
   }

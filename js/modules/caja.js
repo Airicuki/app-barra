@@ -66,15 +66,8 @@ import {
   async function handleDateChange() {
   
     await loadCashFromSupabase();
-  
-    // Avisamos al app principal para que pueda
-    // actualizar el resto de módulos.
-    if (
-      typeof window.renderApp ===
-      "function"
-    ) {
-      window.renderApp();
-    }
+
+    renderCaja();
   
   }
   

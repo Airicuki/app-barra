@@ -41,9 +41,9 @@ export async function getDetallesVentas(
   ventaIds
 ) {
   return await db
-    .from("detalle_ventas")
+    .from("detalle_ventas_barra")
     .select(
-      "id, venta_id, producto_id, cantidad, precio"
+      "id, venta_id, producto_id:producto_barra_id, cantidad, precio"
     )
     .in(
       "venta_id",
@@ -60,7 +60,7 @@ export async function getProductosVentas(
   productoIds
 ) {
   return await db
-    .from("productos")
+    .from("productos_barra")
     .select(
       "id, nombre"
     )

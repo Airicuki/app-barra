@@ -53,6 +53,11 @@ export async function initVentas() {
         "Guardar venta";
 
     }
+
+    els.entryDate?.addEventListener(
+      "change",
+      renderVentas
+    );
   
   
     // ----------------------------------------------------------

@@ -1,20 +1,6 @@
 export const STORAGE_KEY = "barraBebidas.v2";
 export const LEGACY_STORAGE_KEY = "barraBebidas.v1";
 
-export const users = {
-  admin: {
-    password: "admin123",
-    role: "admin",
-    label: "Administrador"
-  },
-
-  barra: {
-    password: "barra123",
-    role: "user",
-    label: "Usuario normal"
-  }
-};
-
 export const cashDenominations = [
   { value: 50, label: "50 €" },
   { value: 20, label: "20 €" },
@@ -34,24 +20,6 @@ export const cashSlots = [
   "morning",
   "start",
   "end"
-];
-
-export const ranchoRoles = [
-  {
-    key: "jefe",
-    label: "Jefe de barra",
-    max: 2
-  },
-  {
-    key: "caja",
-    label: "Caja",
-    max: 2
-  },
-  {
-    key: "barra",
-    label: "Barra",
-    max: 4
-  }
 ];
 
 export const defaultState = {
