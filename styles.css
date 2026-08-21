@@ -1339,6 +1339,20 @@ h3 {
   border-bottom: none;
 }
 
+.rancho-meal-person.rancho-meal-person-paid {
+  background: linear-gradient(135deg, #f7f1ff, #e6d8ff);
+  border-bottom-color: #bfa0f5;
+  border-radius: 8px;
+  box-shadow:
+    inset 3px 0 0 #7548dc,
+    0 4px 12px rgba(91, 50, 196, 0.12);
+}
+
+.rancho-meal-person-paid .rancho-checkbox:last-of-type {
+  color: #5626bb;
+  font-weight: 800;
+}
+
 .rancho-meal-person-name {
   min-width: 0;
 
@@ -3314,6 +3328,168 @@ white-space: nowrap;
   background: rgba(255, 255, 255, 0.86);
 }
 
+#cashView .cash-tpv-total {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+  margin-top: 2px;
+  padding: 16px 18px;
+  border: 1px solid #c7dfff;
+  border-left: 4px solid #3795f8;
+  border-radius: 12px;
+  background: linear-gradient(105deg, #fbfdff, #eaf4ff);
+}
+
+#cashView .cash-tpv-heading,
+#cashView .cash-tpv-summary {
+  grid-column: 1 / -1;
+}
+
+#cashView .cash-tpv-heading strong {
+  color: #155fb5;
+  font-size: 1.08rem;
+}
+
+#cashView .cash-tpv-total label {
+  min-width: 0;
+  color: #187ce5;
+  font-size: 0.96rem;
+}
+
+#cashView .cash-tpv-total input {
+  margin-top: 2px;
+  border-color: #b7d8ff;
+  background: rgba(255, 255, 255, 0.92);
+  color: #155fb5;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+#cashView .cash-tpv-summary {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid #c7dfff;
+  color: #4d6990;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+#cashView .cash-tpv-summary strong {
+  margin-left: 6px;
+  color: #1675dc;
+  font-size: 1.3rem;
+}
+
+#cashView .cash-tpv-help,
+#reportsView .report-tpv-help {
+  margin: 0;
+  color: #476581;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+#cashView .cash-tpv-help {
+  grid-column: 1 / -1;
+}
+
+#reportsView .report-tpv-help {
+  padding: 10px 14px 0;
+}
+
+#reportsView .report-tpv {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  border-color: #c7dfff;
+  background: linear-gradient(105deg, #fbfdff, #eaf4ff);
+}
+
+#reportsView .report-tpv table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#reportsView .report-tpv th,
+#reportsView .report-tpv td {
+  padding: 11px 14px;
+  text-align: left;
+}
+
+#reportsView .report-tpv td,
+#reportsView .report-tpv th:last-child {
+  text-align: right;
+}
+
+#reportsView .report-tpv tbody tr + tr {
+  border-top: 1px solid #cfe2fb;
+}
+
+#reportsView .report-tpv tfoot {
+  color: #155fb5;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+#dailyView .payment-controls {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
+#dailyView .payment-controls > label {
+  min-width: 132px;
+}
+
+#dailyView .payment-controls select {
+  min-height: 42px;
+}
+
+#dailyView .cash-change-fields {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
+#dailyView .cash-change-fields label {
+  min-width: 138px;
+}
+
+#dailyView .cash-change-fields input {
+  min-height: 42px;
+}
+
+#dailyView .cash-change-result {
+  display: grid;
+  gap: 3px;
+  min-width: 142px;
+  padding: 8px 11px;
+  border: 1px solid #c8b1fa;
+  border-radius: 9px;
+  background: #f3edff;
+  color: #5c35bb;
+}
+
+#dailyView .cash-change-result span {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+#dailyView .cash-change-result strong {
+  font-size: 1.05rem;
+}
+
+@media (max-width: 760px) {
+  #dailyView .payment-controls,
+  #dailyView .cash-change-fields {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  #dailyView .payment-controls > label,
+  #dailyView .cash-change-fields label,
+  #dailyView .cash-change-result {
+    width: 100%;
+  }
+}
+
 /* Las diferencias conservan el código de color de los conteos que comparan. */
 #cashView .summary-grid.compact article:nth-child(1) {
   background: linear-gradient(135deg, #fbf8ff, #f0e9ff);
@@ -3420,5 +3596,14 @@ white-space: nowrap;
 
   #cashView .cash-denomination input {
     min-height: 42px;
+  }
+
+  #cashView .cash-tpv-total {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  #cashView .cash-tpv-total label {
+    width: 100%;
   }
 }

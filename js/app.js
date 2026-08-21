@@ -53,6 +53,10 @@ import {
   renderDashboard
 } from "./modules/dashboard.js";
 
+import {
+  initRealtime
+} from "./services/realtime.service.js";
+
 
 // =====================================================
 // CONTROL DE INICIALIZACIÓN
@@ -484,6 +488,8 @@ document.addEventListener(
 
         await loadApplicationData();
 
+        initRealtime();
+
 
         // ---------------------------------------------
         // Mostrar dashboard
@@ -519,6 +525,8 @@ document.addEventListener(
 
 
       await loadApplicationData();
+
+      initRealtime();
 
 
       await showDashboard();

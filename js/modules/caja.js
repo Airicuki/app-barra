@@ -11,10 +11,15 @@ import {
   import {
     formatMoney
   } from "../utils/format.js";
+
+  import {
+    canAccessReports
+  } from "../utils/permissions.js";
   
   import {
     saveCaja,
-    getCaja
+    getCaja,
+    getCajaAnterior
   } from "../services/caja.service.js";
   
   
@@ -88,7 +93,64 @@ import {
     renderCashDiffs(
       cash
     );
+
+    renderCashTpvTotal(
+      cash
+    );
+
+    applyCashPermissions();
   
+  }
+
+
+  // ============================================================
+  // PERMISOS
+  // ============================================================
+
+  function applyCashPermissions() {
+
+    const canEditCash =
+      canAccessReports(
+        session
+      );
+
+    els.cashView
+      ?.querySelectorAll(
+        "[data-denomination]"
+      )
+      .forEach(
+        input => {
+          input.disabled =
+            !canEditCash;
+        }
+      );
+
+    [
+      els.cashTpvDay,
+      els.cashTpvNight
+    ].forEach(
+      input => {
+        if (!input) {
+          return;
+        }
+
+        input.disabled =
+        !canEditCash;
+      }
+    );
+
+    if (els.saveCashBtn) {
+
+      els.saveCashBtn.disabled =
+        !canEditCash;
+
+      els.saveCashBtn.title =
+        canEditCash
+          ? ""
+          : "Solo Jefe Barra y Directiva pueden modificar la caja.";
+
+    }
+
   }
   
   
@@ -165,6 +227,35 @@ import {
   
       }
     );
+
+    normalized.tpvDay =
+      Math.max(
+        0,
+        Number(
+          cash.tpvDay ??
+          cash.tpvTotal ??
+          0
+        )
+      );
+
+    normalized.tpvNight =
+      Math.max(
+        0,
+        Number(
+          cash.tpvNight || 0
+        )
+      );
+
+    normalized.previousTpvNight =
+      Math.max(
+        0,
+        Number(cash.previousTpvNight || 0)
+      );
+
+    normalized.tpvTotal =
+      normalized.tpvDay -
+      normalized.previousTpvNight +
+      normalized.tpvNight;
   
     return normalized;
   }
@@ -262,6 +353,16 @@ import {
   // ============================================================
   
   async function saveCash() {
+
+    if (
+      !canAccessReports(
+        session
+      )
+    ) {
+
+      return;
+
+    }
   
     const date =
       els.entryDate.value;
@@ -289,7 +390,10 @@ import {
         await saveCaja(
           date,
           session.username,
-          cash
+          cash,
+          cash.tpvTotal,
+          cash.tpvDay,
+          cash.tpvNight
         );
   
   
@@ -356,13 +460,13 @@ import {
     date = els.entryDate.value
   ) {
   
-    const {
-      data,
-      error
-    } =
-      await getCaja(
-        date
-      );
+    const [
+      { data, error },
+      { data: previousCaja, error: previousCajaError }
+    ] = await Promise.all([
+      getCaja(date),
+      getCajaAnterior(date)
+    ]);
   
   
     if (error) {
@@ -372,6 +476,11 @@ import {
         error
       );
   
+      return false;
+    }
+
+    if (previousCajaError) {
+      console.error("❌ Error cargando el cierre TPV anterior:", previousCajaError);
       return false;
     }
   
@@ -386,7 +495,9 @@ import {
   
       state.cashCounts[date] =
         normalizeCashCount(
-          {}
+          {
+            previousTpvNight: previousCaja?.tpv_0000_1000
+          }
         );
   
       return true;
@@ -395,7 +506,17 @@ import {
   
     state.cashCounts[date] =
       normalizeCashCount(
-        data.datos
+        {
+          ...data.datos,
+          tpvTotal:
+            data.total_tpv,
+          tpvDay:
+            data.tpv_1000_0000,
+          tpvNight:
+            data.tpv_0000_1000,
+          previousTpvNight:
+            previousCaja?.tpv_0000_1000
+        }
       );
   
   
@@ -446,6 +567,10 @@ import {
   
   
     renderCashDiffs(
+      cash
+    );
+
+    renderCashTpvSummary(
       cash
     );
   
@@ -512,6 +637,26 @@ import {
   
       }
     );
+
+    cash.tpvDay =
+      Math.max(
+        0,
+        Number(
+          els.cashTpvDay?.value || 0
+        )
+      );
+
+    cash.tpvNight =
+      Math.max(
+        0,
+        Number(
+          els.cashTpvNight?.value || 0
+        )
+      );
+
+    cash.tpvTotal =
+      cash.tpvDay +
+      cash.tpvNight;
   
   
     return cash;
@@ -554,6 +699,85 @@ import {
     return Math.round(
       total * 100
     ) / 100;
+  }
+
+
+  // ============================================================
+  // TOTAL TPV
+  // ============================================================
+
+  function renderCashTpvTotal(
+    cash
+  ) {
+
+    if (!els.cashTpvTotal) {
+      return;
+    }
+
+    const tpvDay =
+      Number(
+        cash.tpvDay || 0
+      );
+
+    const tpvNight =
+      Number(
+        cash.tpvNight || 0
+      );
+
+    if (els.cashTpvDay) {
+      els.cashTpvDay.value =
+        tpvDay > 0
+          ? tpvDay.toFixed(2)
+          : "";
+    }
+
+    if (els.cashTpvNight) {
+      els.cashTpvNight.value =
+        tpvNight > 0
+          ? tpvNight.toFixed(2)
+          : "";
+    }
+
+    renderCashTpvSummary(
+      cash
+    );
+
+  }
+
+  function renderCashTpvSummary(
+    cash
+  ) {
+
+    const total =
+      Number(
+        cash.tpvTotal || 0
+      );
+
+    if (els.cashTpvTotal) {
+      els.cashTpvTotal.textContent =
+        formatMoney(total);
+    }
+
+    if (els.cashTpvDate) {
+      els.cashTpvDate.textContent =
+        formatTpvDate(
+          els.entryDate?.value
+        );
+    }
+
+  }
+
+  function formatTpvDate(date) {
+
+    if (!date) {
+      return "—";
+    }
+
+    const [year, month, day] =
+      date.split("-");
+
+    return `${day}/${month}/${year}`;
+
   }
   
   
@@ -616,9 +840,7 @@ import {
   
       els.cashDiffStart.textContent =
         formatMoney(
-          Math.abs(
-            start - morning
-          )
+          start - morning
         );
   
     }
@@ -628,9 +850,7 @@ import {
   
       els.cashDiffEnd.textContent =
         formatMoney(
-          Math.abs(
-            end - start
-          )
+          end - start
         );
   
     }
@@ -640,9 +860,7 @@ import {
   
       els.cashDiffDay.textContent =
         formatMoney(
-          Math.abs(
-            end - morning
-          )
+          end - morning
         );
   
     }

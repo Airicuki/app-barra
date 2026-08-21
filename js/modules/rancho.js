@@ -1231,7 +1231,11 @@ function renderRanchoMeals() {
             );
 
           row.className =
-            "rancho-meal-person";
+            `rancho-meal-person${
+              status.paid
+                ? " rancho-meal-person-paid"
+                : ""
+            }`;
 
 
           // ------------------------------------------------------

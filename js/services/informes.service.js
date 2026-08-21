@@ -9,9 +9,19 @@ export async function getCajaInforme(date) {
   return await db
     .from("caja")
     .select(
-      "id, fecha, datos, usuario, actualizado_en"
+      "id, fecha, datos, total_tpv, tpv_1000_0000, tpv_0000_1000, usuario, actualizado_en"
     )
     .eq("fecha", date)
+    .maybeSingle();
+}
+
+export async function getCajaInformeAnterior(date) {
+  return await db
+    .from("caja")
+    .select("fecha, tpv_0000_1000")
+    .lt("fecha", date)
+    .order("fecha", { ascending: false })
+    .limit(1)
     .maybeSingle();
 }
 
@@ -24,7 +34,7 @@ export async function getVentasCaja(cajaId) {
   return await db
     .from("ventas")
     .select(
-      "id, fecha, usuario, total"
+      "id, fecha, usuario, total, metodo_pago, importe_entregado, cambio"
     )
     .eq("caja_id", cajaId)
     .order("fecha", {

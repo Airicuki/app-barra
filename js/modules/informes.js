@@ -8,6 +8,7 @@ import {
   
   import {
     getCajaInforme,
+    getCajaInformeAnterior,
     getVentasCaja,
     getDetallesVentas,
     getProductosVentas,
@@ -39,7 +40,200 @@ import {
       );
   
     }
+
+    if (els.exportBtn) {
+
+      els.exportBtn.addEventListener(
+        "click",
+        exportCashReport
+      );
+
+    }
   
+  }
+
+
+  // ============================================================
+  // EXPORTAR INFORME VISIBLE A EXCEL
+  // ============================================================
+
+  function exportCashReport() {
+
+    const reportCard =
+      els.cashReport?.querySelector(
+        ".report-card"
+      );
+
+    if (!reportCard) {
+
+      alert(
+        "Primero consulta una caja para poder exportarla."
+      );
+
+      return;
+
+    }
+
+    if (!window.XLSX) {
+
+      alert(
+        "No se ha podido cargar el exportador de Excel."
+      );
+
+      return;
+
+    }
+
+    const book =
+      window.XLSX.utils.book_new();
+
+    const summaryRows = [
+      ["Caja", els.reportDate.value],
+      [],
+      ["Concepto", "Importe"]
+    ];
+
+    reportCard
+      .querySelectorAll(
+        ".summary-grid article"
+      )
+      .forEach(
+        card => {
+          summaryRows.push([
+            card.querySelector("span")?.textContent.trim() || "",
+            card.querySelector("strong")?.textContent.trim() || ""
+          ]);
+        }
+      );
+
+    const summarySheet =
+      window.XLSX.utils.aoa_to_sheet(
+        summaryRows
+      );
+
+    summarySheet["!cols"] = [
+      { wch: 28 },
+      { wch: 18 }
+    ];
+
+    window.XLSX.utils.book_append_sheet(
+      book,
+      summarySheet,
+      "Resumen"
+    );
+
+    reportCard
+      .querySelectorAll(
+        ".cash-report-count"
+      )
+      .forEach(
+        (count, index) => {
+          const table =
+            count.querySelector("table");
+
+          if (!table) {
+            return;
+          }
+
+          const sheet =
+            window.XLSX.utils.table_to_sheet(
+              table
+            );
+
+          const title =
+            count.querySelector("h4")?.textContent.trim() ||
+            `Conteo ${index + 1}`;
+
+          window.XLSX.utils.book_append_sheet(
+            book,
+            sheet,
+            title.slice(0, 31)
+          );
+
+          sheet["!cols"] = [
+            { wch: 18 },
+            { wch: 12 },
+            { wch: 16 }
+          ];
+
+        }
+      );
+
+    const salesTable =
+      reportCard.querySelector(
+        ".report-sales-table table"
+      );
+
+    if (salesTable) {
+
+      const salesSheet =
+        window.XLSX.utils.table_to_sheet(
+          salesTable
+        );
+
+      salesSheet["!cols"] = [
+        { wch: 32 },
+        { wch: 14 },
+        { wch: 16 }
+      ];
+
+      window.XLSX.utils.book_append_sheet(
+        book,
+        salesSheet,
+        "Ventas"
+      );
+
+    }
+
+    const paymentTable =
+      reportCard.querySelector(
+        ".report-payment-table table"
+      );
+
+    if (paymentTable) {
+
+      window.XLSX.utils.book_append_sheet(
+        book,
+        window.XLSX.utils.table_to_sheet(
+          paymentTable
+        ),
+        "Cobros"
+      );
+
+    }
+
+    const tpvTable =
+      reportCard.querySelector(
+        ".report-tpv table"
+      );
+
+    if (tpvTable) {
+
+      const tpvSheet =
+        window.XLSX.utils.table_to_sheet(
+          tpvTable
+        );
+
+      tpvSheet["!cols"] = [
+        { wch: 34 },
+        { wch: 18 }
+      ];
+
+      window.XLSX.utils.book_append_sheet(
+        book,
+        tpvSheet,
+        "Cierre TPV"
+      );
+
+    }
+
+    window.XLSX.writeFile(
+      book,
+      `informe-caja-${
+        els.reportDate.value
+      }.xlsx`
+    );
+
   }
   
   
@@ -73,13 +267,19 @@ import {
       // 1. OBTENER CAJA
       // ========================================================
   
-      const {
-        data: caja,
-        error: cajaError
-      } =
-        await getCajaInforme(
-          date
-        );
+      const [
+        {
+          data: caja,
+          error: cajaError
+        },
+        {
+          data: cajaAnterior,
+          error: cajaAnteriorError
+        }
+      ] = await Promise.all([
+        getCajaInforme(date),
+        getCajaInformeAnterior(date)
+      ]);
   
   
       if (cajaError) {
@@ -92,6 +292,12 @@ import {
         els.cashReport.innerHTML =
           "<p class='error'>No se pudo consultar la caja.</p>";
   
+        return;
+      }
+
+      if (cajaAnteriorError) {
+        console.error("❌ Error consultando el cierre TPV anterior:", cajaAnteriorError);
+        els.cashReport.innerHTML = "<p class='error'>No se pudo consultar el cierre TPV anterior.</p>";
         return;
       }
   
@@ -405,7 +611,8 @@ import {
       renderCashReport(
         caja,
         ventas,
-        perdidasConProducto
+        perdidasConProducto,
+        Number(cajaAnterior?.tpv_0000_1000 || 0)
       );
   
   
@@ -550,7 +757,8 @@ import {
   function renderCashReport(
     caja,
     ventas,
-    perdidas
+    perdidas,
+    previousTpvNight = 0
   ) {
   
     const datos =
@@ -565,6 +773,19 @@ import {
   
     const end =
       datos.end?.total || 0;
+
+    const tpvDay =
+      Number(
+        caja.tpv_1000_0000 || 0
+      );
+
+    const tpvNight =
+      Number(
+        caja.tpv_0000_1000 || 0
+      );
+
+    const totalTpv =
+      tpvDay - previousTpvNight + tpvNight;
   
   
     const diffStart =
@@ -892,6 +1113,50 @@ import {
           ${conteoEnd}
   
         </div>
+
+
+        <h3 class="report-tpv-heading">
+          💳 Cierre TPV — Jornada ${formatReportDate(caja.fecha)}
+        </h3>
+
+
+        <div class="report-tpv table-wrapper">
+
+          <table>
+
+            <tbody>
+
+              <tr>
+                <th>Ventas TPV de 10:00 a 00:00</th>
+                <td>${tpvDay.toFixed(2)} €</td>
+              </tr>
+
+              <tr>
+                <th>Ventas TPV de 00:00 a 10:00</th>
+                <td>${tpvNight.toFixed(2)} €</td>
+              </tr>
+
+              <tr>
+                <th>Menos TPV 00:00 a 10:00 de la jornada anterior</th>
+                <td>−${previousTpvNight.toFixed(2)} €</td>
+              </tr>
+
+            </tbody>
+
+            <tfoot>
+              <tr>
+                <th>Total TPV jornada</th>
+                <th>${totalTpv.toFixed(2)} €</th>
+              </tr>
+            </tfoot>
+
+          </table>
+
+          <p class="report-tpv-help">
+            Fórmula: TPV 10:00–00:00 de hoy − TPV 00:00–10:00 de ayer + TPV 00:00–10:00 de hoy.
+          </p>
+
+        </div>
   
   
         <h3>
@@ -1018,7 +1283,7 @@ import {
 
     const tables =
       els.cashReport.querySelectorAll(
-        ".report-card > .table-wrapper"
+        ".report-card > .table-wrapper:not(.report-tpv)"
       );
 
 
@@ -1029,16 +1294,100 @@ import {
       )
     );
 
+    const paymentTable =
+      renderPaymentSalesTable(
+        ventas,
+        totalVentas
+      );
 
-    headings[2]?.classList.add(
+    els.cashReport
+      .querySelector(
+        ".report-sales-table"
+      )
+      ?.before(
+        paymentTable
+      );
+
+
+    headings[3]?.classList.add(
       "report-sales-heading"
     );
 
-    headings[3]?.remove();
+    headings[4]?.remove();
     tables[1]?.remove();
   
   }
 
+
+function renderPaymentSalesTable(
+  ventas,
+  totalVentas
+) {
+
+  const rows =
+    ["efectivo", "tarjeta"].map(
+      method => {
+        const sales = ventas.filter(
+          sale => sale.metodo_pago === method
+        );
+
+        return {
+          method:
+            method === "efectivo"
+              ? "Efectivo"
+              : "Tarjeta",
+          count: sales.length,
+          total: sales.reduce(
+            (sum, sale) =>
+              sum + Number(sale.total || 0),
+            0
+          ),
+          received: sales.reduce(
+            (sum, sale) =>
+              sum + Number(sale.importe_entregado || 0),
+            0
+          ),
+          change: sales.reduce(
+            (sum, sale) =>
+              sum + Number(sale.cambio || 0),
+            0
+          )
+        };
+      }
+    );
+
+  const wrapper =
+    document.createElement("div");
+
+  wrapper.className =
+    "table-wrapper report-payment-table";
+
+  wrapper.innerHTML = `
+    <h3>💳 Cobros por método</h3>
+    <table>
+      <thead>
+        <tr><th>Método</th><th>Ventas</th><th>Importe</th><th>Entregado</th><th>Cambio</th></tr>
+      </thead>
+      <tbody>
+        ${rows.map(row => `
+          <tr>
+            <td>${row.method}</td>
+            <td>${row.count}</td>
+            <td>${row.total.toFixed(2)} €</td>
+            <td>${row.received ? `${row.received.toFixed(2)} €` : "—"}</td>
+            <td>${row.change ? `${row.change.toFixed(2)} €` : "—"}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+      <tfoot>
+        <tr><th colspan="2">Total cobrado</th><th>${totalVentas.toFixed(2)} €</th><th></th><th></th></tr>
+      </tfoot>
+    </table>
+  `;
+
+  return wrapper;
+
+}
 
 function renderProductSalesTable(
   ventas,
@@ -1210,5 +1559,18 @@ function renderProductSalesTable(
 
 
   return wrapper;
+
+}
+
+function formatReportDate(date) {
+
+  if (!date) {
+    return "—";
+  }
+
+  const [year, month, day] =
+    date.split("-");
+
+  return `${day}/${month}/${year}`;
 
 }

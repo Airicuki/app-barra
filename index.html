@@ -927,13 +927,6 @@
 
 
           <span>
-            Usuario JefeBarra Genérico:
-            <code>jefeBarra</code> /
-            <code>sepul123</code>
-          </span>
-
-
-          <span>
             Usuario Barra Genérico:
             <code>barra</code> /
             <code>user123</code>
@@ -1214,6 +1207,44 @@
           </div>
 
 
+          <div class="payment-controls">
+
+            <label for="paymentMethod">
+              Cobro
+
+              <select id="paymentMethod">
+                <option value="efectivo">Efectivo</option>
+                <option value="tarjeta">Tarjeta</option>
+              </select>
+
+            </label>
+
+            <div id="cashChangeFields" class="cash-change-fields">
+
+              <label for="cashReceived">
+                Cuánto me da
+
+                <input
+                  id="cashReceived"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputmode="decimal"
+                  placeholder="0,00 €"
+                >
+
+              </label>
+
+              <div class="cash-change-result">
+                <span>Cuánto le devuelvo</span>
+                <strong id="cashChange">0,00 €</strong>
+              </div>
+
+            </div>
+
+          </div>
+
+
           <button
             id="saveTransactionBtn"
             class="primary"
@@ -1445,6 +1476,58 @@
 
           </article>
 
+
+        </section>
+
+
+        <section
+          class="cash-tpv-total"
+          aria-label="Cierre TPV"
+        >
+
+          <div class="cash-tpv-heading">
+            <strong>
+              Cierre TPV — Jornada
+              <span id="cashTpvDate">—</span>
+            </strong>
+          </div>
+
+          <label for="cashTpvDay">
+            Ventas TPV de 10:00 a 00:00
+
+            <input
+              id="cashTpvDay"
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="0,00 €"
+            >
+
+          </label>
+
+          <label for="cashTpvNight">
+            Ventas TPV de 00:00 a 10:00
+
+            <input
+              id="cashTpvNight"
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="0,00 €"
+            >
+
+          </label>
+
+          <p class="cash-tpv-summary">
+            Total TPV jornada:
+            <strong id="cashTpvTotal">0,00 €</strong>
+          </p>
+
+          <p class="cash-tpv-help">
+            Se calcula descontando el tramo de 00:00 a 10:00 de la jornada anterior, que ya viene incluido en la lectura de 10:00 a 00:00 de hoy.
+          </p>
 
         </section>
 
@@ -2331,6 +2414,8 @@
 
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 
   <!-- =====================================================

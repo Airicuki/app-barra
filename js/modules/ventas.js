@@ -72,6 +72,16 @@ export async function initVentas() {
       );
   
     }
+
+    els.paymentMethod?.addEventListener(
+      "change",
+      renderPaymentChange
+    );
+
+    els.cashReceived?.addEventListener(
+      "input",
+      renderPaymentChange
+    );
   
   
     // ----------------------------------------------------------
@@ -112,6 +122,8 @@ export async function initVentas() {
     // ----------------------------------------------------------
   
     renderProductSteppers();
+
+    renderPaymentChange();
   
   
     return true;
@@ -130,6 +142,138 @@ export async function initVentas() {
     renderTransactions();
   
   }
+
+
+  // ============================================================
+  // SINCRONIZAR HISTORIAL DE VENTAS ENTRE SESIONES
+  // ============================================================
+
+  export async function loadTransactionsFromSupabase(
+    date = els.entryDate?.value
+  ) {
+
+    if (!date) {
+      return false;
+    }
+
+    const {
+      data: ventas,
+      error: ventasError
+    } = await db
+      .from("ventas")
+      .select("id, usuario, total")
+      .eq("fecha", date);
+
+    if (ventasError) {
+      console.error(
+        "❌ Error sincronizando ventas:",
+        ventasError
+      );
+
+      return false;
+    }
+
+    const saleRows =
+      ventas || [];
+
+    const saleIds =
+      saleRows.map(
+        sale => sale.id
+      );
+
+    let details = [];
+
+    if (saleIds.length) {
+
+      const {
+        data,
+        error
+      } = await db
+        .from("detalle_ventas_barra")
+        .select("venta_id, producto_barra_id, cantidad")
+        .in("venta_id", saleIds);
+
+      if (error) {
+        console.error(
+          "❌ Error sincronizando detalle de ventas:",
+          error
+        );
+
+        return false;
+      }
+
+      details = data || [];
+
+    }
+
+    const productIds = [
+      ...new Set(
+        details.map(
+          detail => detail.producto_barra_id
+        )
+      )
+    ];
+
+    let products = [];
+
+    if (productIds.length) {
+
+      const {
+        data,
+        error
+      } = await db
+        .from("productos_barra")
+        .select("id, nombre")
+        .in("id", productIds);
+
+      if (error) {
+        console.error(
+          "❌ Error sincronizando productos de ventas:",
+          error
+        );
+
+        return false;
+      }
+
+      products = data || [];
+
+    }
+
+    const previousTransactions =
+      state.transactions[date] || [];
+
+    state.transactions[date] =
+      saleRows.map(
+        sale => ({
+          id: sale.id,
+          time:
+            previousTransactions.find(
+              transaction => transaction.id === sale.id
+            )?.time || "Venta registrada",
+          user: sale.usuario,
+          total: Number(sale.total || 0),
+          items: details
+            .filter(
+              detail => detail.venta_id === sale.id
+            )
+            .map(
+              detail => ({
+                name:
+                  products.find(
+                    product =>
+                      product.id === detail.producto_barra_id
+                  )?.nombre || "Producto",
+                qty: Number(detail.cantidad || 0)
+              })
+            )
+        })
+      );
+
+    renderTransactions();
+
+    return true;
+
+  }
   
   
   // ============================================================
@@ -141,6 +285,8 @@ export async function initVentas() {
     renderBarProducts();
   
     renderCartSummary();
+
+    renderPaymentChange();
   
   }
   
@@ -837,8 +983,7 @@ export async function initVentas() {
           item.price,
         0
       );
-  
-  
+
     // ----------------------------------------------------------
     // TOTAL
     // ----------------------------------------------------------
@@ -1132,6 +1277,8 @@ function changeQuantity(event) {
 
   renderCartSummary();
 
+  renderPaymentChange();
+
 }
   
   
@@ -1191,8 +1338,24 @@ function changeQuantity(event) {
           item.price,
         0
       );
-  
-  
+
+    const paymentMethod =
+      els.paymentMethod?.value ||
+      "efectivo";
+
+    const rawCashReceived =
+      els.cashReceived?.value.trim() || "";
+
+    const cashReceived =
+      paymentMethod === "efectivo" && rawCashReceived !== ""
+        ? Number(rawCashReceived)
+        : null;
+
+    const cashChange =
+      paymentMethod === "efectivo" && Number.isFinite(cashReceived)
+        ? Math.max(0, cashReceived - total)
+        : 0;
+
     if (
       !els.saveTransactionBtn
     ) {
@@ -1269,6 +1432,12 @@ function changeQuantity(event) {
   
           p_total:
             total,
+
+          p_metodo_pago:
+            paymentMethod,
+
+          p_importe_entregado:
+            cashReceived,
   
           p_items:
             supabaseItems
@@ -1351,7 +1520,13 @@ function changeQuantity(event) {
             })
           ),
   
-        total
+        total,
+
+        paymentMethod,
+
+        cashReceived,
+
+        cashChange
   
       };
   
@@ -1381,6 +1556,10 @@ function changeQuantity(event) {
       // ========================================================
   
       setCart({});
+
+      if (els.cashReceived) {
+        els.cashReceived.value = "";
+      }
   
   
       saveState();
@@ -1399,7 +1578,6 @@ function changeQuantity(event) {
           "app:sale-saved"
         )
       );
-
 
       flash(
         els.saveStatus,
@@ -1433,6 +1611,48 @@ function changeQuantity(event) {
   }
   
   
+  // ============================================================
+  // COBRO Y CAMBIO
+  // ============================================================
+
+  function renderPaymentChange() {
+
+    const method =
+      els.paymentMethod?.value ||
+      "efectivo";
+
+    const isCash =
+      method === "efectivo";
+
+    els.cashChangeFields?.classList.toggle(
+      "hidden",
+      !isCash
+    );
+
+    if (!isCash || !els.cashChange) {
+      return;
+    }
+
+    const total =
+      cartItems(cart).reduce(
+        (sum, item) =>
+          sum + item.qty * item.price,
+        0
+      );
+
+    const received =
+      Number(
+        els.cashReceived?.value || 0
+      );
+
+    els.cashChange.textContent =
+      formatMoney(
+        Math.max(0, received - total)
+      );
+
+  }
+
+
   // ============================================================
   // HISTORIAL DE VENTAS
   // ============================================================

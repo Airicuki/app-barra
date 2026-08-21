@@ -77,6 +77,18 @@ export const els = {
   
     cartUnits:
       document.querySelector("#cartUnits"),
+
+    paymentMethod:
+      document.querySelector("#paymentMethod"),
+
+    cashChangeFields:
+      document.querySelector("#cashChangeFields"),
+
+    cashReceived:
+      document.querySelector("#cashReceived"),
+
+    cashChange:
+      document.querySelector("#cashChange"),
   
     cashView:
       document.querySelector("#cashView"),
@@ -92,6 +104,18 @@ export const els = {
   
     cashDiffDay:
       document.querySelector("#cashDiffDay"),
+
+    cashTpvDay:
+      document.querySelector("#cashTpvDay"),
+
+    cashTpvNight:
+      document.querySelector("#cashTpvNight"),
+
+    cashTpvTotal:
+      document.querySelector("#cashTpvTotal"),
+
+    cashTpvDate:
+      document.querySelector("#cashTpvDate"),
   
     cashStatus:
       document.querySelector("#cashStatus"),
