@@ -1354,9 +1354,7 @@ h3 {
   background: linear-gradient(135deg, #f7f1ff, #e6d8ff);
   border-bottom-color: #bfa0f5;
   border-radius: 8px;
-  box-shadow:
-    inset 3px 0 0 #7548dc,
-    0 4px 12px rgba(91, 50, 196, 0.12);
+  box-shadow: 0 4px 12px rgba(91, 50, 196, 0.12);
 }
 
 .rancho-meal-person-paid .rancho-checkbox:last-of-type {
@@ -2780,10 +2778,10 @@ output {
     height: 38px;
   }
 
-  .inventory-category-products
-  .inventory-actions
-  [data-remove] {
-    display: none;
+.inventory-category-products
+.inventory-actions
+[data-remove] {
+    display: flex;
   }
 
   .inventory-add-overlay {
@@ -3385,6 +3383,22 @@ white-space: nowrap;
   font-weight: 700;
 }
 
+.rancho-person-chip-removable {
+  cursor: pointer;
+}
+
+.rancho-person-chip-removable:hover,
+.rancho-person-chip-removable:focus-visible {
+  border-color: #a889e9;
+  background: #eee6ff;
+  outline: none;
+}
+
+.rancho-person-chip-removable.is-removing {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 #cashView .cash-tpv-summary strong {
   margin-left: 6px;
   color: #1675dc;
@@ -3437,6 +3451,48 @@ white-space: nowrap;
 #reportsView .report-tpv tfoot {
   color: #155fb5;
   background: rgba(255, 255, 255, 0.62);
+}
+
+@media (max-width: 600px) {
+  #reportsView .report-card {
+    padding: 14px;
+    overflow: hidden;
+  }
+
+  #reportsView .report-card > h3 {
+    font-size: 1rem;
+    overflow-wrap: anywhere;
+  }
+
+  #reportsView .table-wrapper {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #reportsView .report-tpv {
+    overflow: visible;
+  }
+
+  #reportsView .report-tpv table {
+    table-layout: fixed;
+  }
+
+  #reportsView .report-tpv th,
+  #reportsView .report-tpv td {
+    padding: 9px 8px;
+    font-size: 0.78rem;
+    overflow-wrap: anywhere;
+  }
+
+  #reportsView .report-tpv td {
+    white-space: nowrap;
+  }
+
+  #reportsView .report-tpv-help {
+    padding: 9px 8px 0;
+    font-size: 0.78rem;
+  }
 }
 
 #dailyView .payment-controls {

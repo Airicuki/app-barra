@@ -4,6 +4,7 @@ import { els } from "../utils/dom.js";
 import {
   getRanchoPersonas,
   createRanchoPersona,
+  deactivateRanchoPersona,
   getRanchoTurnos,
   saveRanchoTurno,
   getRanchoComidas,
@@ -151,6 +152,15 @@ export function initRancho() {
     els.personForm.addEventListener(
       "submit",
       addPerson
+    );
+
+  }
+
+  if (els.peopleList) {
+
+    els.peopleList.addEventListener(
+      "click",
+      handleRanchoPersonClick
     );
 
   }
@@ -788,6 +798,15 @@ function renderPeople() {
       chip.textContent =
         person.nombre;
 
+      if (isAdminOrJefeBarra()) {
+        chip.dataset.personId = person.id;
+        chip.title = `Eliminar a ${person.nombre}`;
+        chip.setAttribute("role", "button");
+        chip.setAttribute("tabindex", "0");
+        chip.setAttribute("aria-label", `Eliminar a ${person.nombre}`);
+        chip.classList.add("rancho-person-chip-removable");
+      }
+
       els.peopleList.append(
         chip
       );
@@ -828,6 +847,34 @@ function renderPeople() {
 
 }
 
+
+async function handleRanchoPersonClick(event) {
+  const chip = event.target.closest("[data-person-id]");
+
+  if (!chip || !isAdminOrJefeBarra()) {
+    return;
+  }
+
+  const person = findPersonById(chip.dataset.personId);
+
+  if (!person || !window.confirm(`¿Quieres eliminar a ${person.nombre} del listado del Rancho?`)) {
+    return;
+  }
+
+  chip.classList.add("is-removing");
+
+  const { error } = await deactivateRanchoPersona(person.id);
+
+  if (error) {
+    console.error("❌ Error eliminando persona del Rancho:", error);
+    alert("No se ha podido eliminar a la persona.");
+    chip.classList.remove("is-removing");
+    return;
+  }
+
+  await loadRancho();
+  renderRancho();
+}
 
 // ============================================================
 // SEMANA

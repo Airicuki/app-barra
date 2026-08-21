@@ -28,6 +28,7 @@ import { loadCashReport } from "../modules/informes.js";
 
 let channel = null;
 const queuedUpdates = new Map();
+let salesPollingTimer = null;
 
 function queueUpdate(key, update) {
   clearTimeout(queuedUpdates.get(key));
@@ -61,10 +62,36 @@ function refreshOpenReport(date) {
   return Promise.resolve();
 }
 
-export function initRealtime() {
-  if (channel) {
+function startSalesFallbackSync() {
+  if (salesPollingTimer) {
     return;
   }
+
+  salesPollingTimer = setInterval(() => {
+    if (document.visibilityState !== "visible") {
+      return;
+    }
+
+    const date = currentOperationalDate();
+
+    if (!date) {
+      return;
+    }
+
+    queueUpdate("ventas-fallback", async () => {
+      await loadTransactionsFromSupabase(date);
+      await renderDashboard();
+    });
+  }, 3000);
+}
+
+export function initRealtime() {
+  if (channel) {
+    startSalesFallbackSync();
+    return;
+  }
+
+  startSalesFallbackSync();
 
   channel = db
     .channel("app-live-sync")

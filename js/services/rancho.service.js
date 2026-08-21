@@ -167,3 +167,11 @@ export async function deleteRanchoComida(
     .eq("tipo", tipo)
     .eq("persona_id", personaId);
 }
+
+// Se desactiva para conservar turnos y comidas históricas vinculados.
+export async function deactivateRanchoPersona(personaId) {
+  return await db
+    .from("rancho_personas")
+    .update({ activo: false })
+    .eq("id", personaId);
+}
