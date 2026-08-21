@@ -3423,14 +3423,21 @@ white-space: nowrap;
 
 #reportsView .report-tpv {
   grid-column: 1 / -1;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-color: #c7dfff;
   background: linear-gradient(105deg, #fbfdff, #eaf4ff);
 }
 
 #reportsView .report-tpv table {
   width: 100%;
+  min-width: 520px;
   border-collapse: collapse;
+}
+
+#reportsView .report-payment-table h3 {
+  margin: 0;
+  padding: 14px 16px 10px;
 }
 
 #reportsView .report-tpv th,
@@ -3470,19 +3477,15 @@ white-space: nowrap;
     -webkit-overflow-scrolling: touch;
   }
 
-  #reportsView .report-tpv {
-    overflow: visible;
-  }
-
   #reportsView .report-tpv table {
-    table-layout: fixed;
+    min-width: 520px;
   }
 
   #reportsView .report-tpv th,
   #reportsView .report-tpv td {
     padding: 9px 8px;
     font-size: 0.78rem;
-    overflow-wrap: anywhere;
+    white-space: normal;
   }
 
   #reportsView .report-tpv td {
