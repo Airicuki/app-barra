@@ -745,7 +745,18 @@ h3 {
   grid-template-columns:
     minmax(180px, 0.8fr)
     minmax(220px, 1.5fr)
+    auto
     auto;
+}
+
+.transaction-payment {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #eee8ff;
+  color: #5532ad;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .product-main {

@@ -8,7 +8,8 @@ import {
 
 import {
   initVentas,
-  renderVentas
+  renderVentas,
+  loadTransactionsFromSupabase
 } from "./modules/ventas.js";
 
 import {
@@ -165,6 +166,18 @@ async function loadApplicationData() {
 
 
   await loadCashFromSupabase();
+
+
+  // =================================================
+  // VENTAS GUARDADAS DEL DÍA OPERATIVO
+  // =================================================
+
+  console.log(
+    "🍺 Cargando ventas guardadas..."
+  );
+
+
+  await loadTransactionsFromSupabase();
 
 
   // =================================================
@@ -440,6 +453,13 @@ document.addEventListener(
     if (els.entryDate) {
 
       els.entryDate.value =
+        operationalDate();
+
+    }
+
+    if (els.reportDate) {
+
+      els.reportDate.value =
         operationalDate();
 
     }

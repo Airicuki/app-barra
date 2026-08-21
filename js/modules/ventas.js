@@ -161,7 +161,7 @@ export async function initVentas() {
       error: ventasError
     } = await db
       .from("ventas")
-      .select("id, usuario, total")
+      .select("id, usuario, total, metodo_pago")
       .eq("fecha", date);
 
     if (ventasError) {
@@ -252,6 +252,7 @@ export async function initVentas() {
             )?.time || "Venta registrada",
           user: sale.usuario,
           total: Number(sale.total || 0),
+          paymentMethod: sale.metodo_pago || "efectivo",
           items: details
             .filter(
               detail => detail.venta_id === sale.id
@@ -1474,81 +1475,9 @@ function changeQuantity(event) {
       );
   
   
-      // ========================================================
-      // ACTUALIZAR ESTADO LOCAL
-      // ========================================================
-  
-      const transaction = {
-  
-        id:
-          ventaId,
-  
-        time:
-          new Date()
-            .toLocaleTimeString(
-              "es-ES",
-              {
-                hour:
-                  "2-digit",
-  
-                minute:
-                  "2-digit"
-              }
-            ),
-  
-        user:
-          session.username,
-  
-        items:
-          items.map(
-            ({
-              product,
-              qty,
-              price
-            }) => ({
-  
-              productId:
-                product.id,
-  
-              name:
-                product.name,
-  
-              qty,
-  
-              price
-  
-            })
-          ),
-  
-        total,
-
-        paymentMethod,
-
-        cashReceived,
-
-        cashChange
-  
-      };
-  
-  
-      if (
-        !state.transactions[
-          date
-        ]
-      ) {
-  
-        state.transactions[
-          date
-        ] = [];
-  
-      }
-  
-  
-      state.transactions[
-        date
-      ].push(
-        transaction
-      );
+      // El historial siempre se reconstruye desde Supabase. Así una
+      // venta guardada desde otro móvil u ordenador nunca queda fuera.
+      await loadTransactionsFromSupabase(date);
   
   
       // ========================================================
@@ -1570,8 +1499,6 @@ function changeQuantity(event) {
       // ========================================================
   
       renderProductSteppers();
-
-      renderTransactions();
 
       window.dispatchEvent(
         new Event(
@@ -1787,6 +1714,19 @@ function changeQuantity(event) {
             formatMoney(
               transaction.total
             );
+
+          const payment =
+            document.createElement(
+              "span"
+            );
+
+          payment.className =
+            "transaction-payment";
+
+          payment.textContent =
+            transaction.paymentMethod === "tarjeta"
+              ? "💳 Tarjeta"
+              : "💶 Efectivo";
   
   
           // ----------------------------------------------------
@@ -1796,6 +1736,7 @@ function changeQuantity(event) {
           card.append(
             title,
             detail,
+            payment,
             total
           );
   
